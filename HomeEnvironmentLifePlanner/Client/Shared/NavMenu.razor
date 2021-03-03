@@ -1,0 +1,69 @@
+﻿<div class="top-row pl-4 navbar navbar-dark">
+    <a class="navbar-brand" href="">HomeEnvironmentLifePlanner</a>
+    <button class="navbar-toggler" @onclick="ToggleNavMenu">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+</div>
+
+<div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
+    <ul class="nav flex-column">
+
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="currency">
+                <span class="oi oi-dollar" aria-hidden="true"></span>Waluty
+            </NavLink>
+        </li>
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="paymentType">
+                <span class="oi oi-cart" aria-hidden="true"></span>Formy płatności
+            </NavLink>
+        </li>
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="account">
+                <span class="oi oi-book" aria-hidden="true"></span>Konta
+            </NavLink>
+        </li>
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="category">
+                <span class="oi oi-terminal" aria-hidden="true"></span>Kategorie
+            </NavLink>
+        </li>
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="categoryType">
+                <span class="oi oi-document" aria-hidden="true"></span>Typy Kategori
+            </NavLink>
+        </li>
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="contractor">
+                <span class="oi oi-person" aria-hidden="true"></span>Konrahenci
+            </NavLink>
+        </li>
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="contractorGroup">
+                <span class="oi oi-people" aria-hidden="true"></span>Grupy kontrahentów
+            </NavLink>
+        </li>
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="bankStatementHeader">
+                <span class="oi oi-calculator" aria-hidden="true"></span>Wyciągi
+            </NavLink>
+        </li>
+        <li class="nav-item px-3">
+            <NavLink class="nav-link" href="transaction">
+                <span class="oi oi-dashboard" aria-hidden="true"></span>Transakcje
+            </NavLink>
+        </li>
+
+    </ul>
+</div>
+
+@code {
+    private bool collapseNavMenu = true;
+
+    private string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
+}

@@ -1,0 +1,65 @@
+﻿@page "/contractor"
+@inject HttpClient client
+@inject IJSRuntime js
+@using HomeEnvironmentLifePlanner.Shared.Models
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@inject NavigationManager navigatorManager
+<h2><RadzenIcon Icon="person" /> Kontrahenci</h2>
+<RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Primary" Click="@(x=> navigatorManager.NavigateTo($"contractor/create"))" Icon="add_box" />
+<br>
+@if (contractors == null)
+{
+    <text>@HomeEnvironmentLifePlanner.Client.Properties.Dictionary.sharedLoading</text>
+}
+else if (contractors.Length == 0)
+{
+    <text>@HomeEnvironmentLifePlanner.Client.Properties.Dictionary.sharedNoRecords</text>
+}
+else
+{
+
+    <RadzenGrid Data="@contractors" AllowFiltering="true" AllowPaging="true" AllowSorting="true" TItem="Contractor" >
+        <Columns>
+            <RadzenGridColumn TItem="Contractor" Property="CtR_Id" Title="ID" Width="60px"/>
+            <RadzenGridColumn TItem="Contractor" Property="CtR_Acronym" Title="Akronim" Width="160px"/>
+
+            <RadzenGridColumn TItem="Contractor" Property="CtR_Name" Title="Nazwa" Width="200px" />
+            <RadzenGridColumn TItem="Contractor" Property="CtR_ReferenceNumber" Title="Numer referencyjny"Width="200px" />
+            <RadzenGridColumn TItem="Contractor" Property="CtR_Country" Title="Kraj"Width="40px" />
+            <RadzenGridColumn TItem="Contractor" Property="CtR_City" Title="Miasto"Width="80px" />
+            <RadzenGridColumn TItem="Contractor" Property="CtR_Street" Title="Ulica" Width="120px"/>
+            <RadzenGridColumn TItem="Contractor" Property="ContractorGroup.CtG_Name" Title="Grupa" Width="160px" />
+            <RadzenGridColumn TItem="Contractor" Context="contractor" Title="Akcje" Width="120px">
+                <Template Context="contractor">
+                    <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Primary" Click="@(x=> navigatorManager.NavigateTo($"contractor/edit/{contractor.CtR_Id}"))" Icon="create" />
+                    <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Danger" Click="@(contractorId=>Delete(contractor.CtR_Id) )" Icon="delete" />
+                </Template>
+            </RadzenGridColumn>
+        </Columns>
+    </RadzenGrid>
+}
+@code {
+    Contractor[] contractors { get; set; }
+    protected override async Task OnInitializedAsync()
+    {
+        contractors = await client.GetFromJsonAsync<Contractor[]>("api/contractor");
+        try
+        {
+            contractors = await client.GetFromJsonAsync<Contractor[]>("api/contractor");
+
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+        }
+    }
+    async Task Delete(int contractorId)
+    {
+        var ctr = contractors.First(x => x.CtR_Id == contractorId);
+        if (await js.InvokeAsync<bool>("confirm", $"{HomeEnvironmentLifePlanner.Client.Properties.Dictionary.sharedDeleteConfimation} {ctr.CtR_Name}'s ({ctr.CtR_Id})?"))
+        {
+            await client.DeleteAsync($"api/contractor/{contractorId}");
+            await OnInitializedAsync();
+        }
+    }
+}

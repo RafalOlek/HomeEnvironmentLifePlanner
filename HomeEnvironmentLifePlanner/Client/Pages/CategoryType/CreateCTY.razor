@@ -1,0 +1,14 @@
+﻿@page "/categoryType/create"
+@inject HttpClient http
+@inject NavigationManager uriHelper
+<FormCTY ButtonText="@Properties.Dictionary.sharedCreate" categoryType="@categoryType" Submit="@CreateCategoryType" />
+    @code {
+
+        CategoryType categoryType = new CategoryType();
+        async Task CreateCategoryType()
+        {
+            await http.PostAsJsonAsync("api/categoryType", categoryType);
+            uriHelper.NavigateTo("categoryType");
+        }
+    }
+

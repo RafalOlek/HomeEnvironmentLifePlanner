@@ -1,0 +1,139 @@
+﻿@using HomeEnvironmentLifePlanner.Shared.Models
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@inject HttpClient client
+@inject NavigationManager navigatorManager
+
+<RadzenTemplateForm Data="@transaction" Submit="@Submit">
+    <DataAnnotationsValidator />
+    <div class="row justify-content-center">
+        <div class="col-md-8 ">
+            <RadzenFieldset Text="Transakcja">
+                <div class="row">
+                    <div class="col-md-2 align-items-center d-flex">
+                        <RadzenLabel Text="Kwota" />
+                    </div>
+                    <div class="col-md-10">
+                        <InputNumber style="width: 100%;" @bind-Value="@transaction.TrN_Amount" Name="trnAmount" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-2" />
+                    <div class="col-md-10 d-flex justify-content-center">
+                        <RadzenRequiredValidator Component="trnAmount" Text="Kwota jest wymagana!" Popup=@popup Style="position: absolute" />
+                    </div>
+                    <br />
+                </div>
+                <div class="row">
+                    <div class="col-md-2 align-items-center d-flex">
+                        <RadzenLabel Text="Waluta" />
+                    </div>
+                    <div class="col-md-10">
+                        <RadzenDropDown AllowClear="false" Name="trnCurId" style="width: 100%;"
+                                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterOperator="StringFilterOperator.StartsWith" AllowFiltering="true"
+                                        Data=@currencies TextProperty="CuR_Name" ValueProperty="CuR_Id" @bind-Value="@transaction.TrN_CURID" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-2" />
+                    <div class="col-md-10 d-flex justify-content-center">
+                        <Radzen.Blazor.RadzenNumericRangeValidator Component="trnCurId" Min="1" Text="Należy wybrać walutę!" Popup=@popup Style="position: absolute" />
+                    </div>
+                    <br />
+                </div>
+                <div class="row">
+                    <div class="col-md-2 align-items-center d-flex">
+                        <RadzenLabel Text="Kontrahent" />
+                    </div>
+                    <div class="col-md-10">
+                        <RadzenDropDown AllowClear="false" Name="trnCtrId" style="width: 100%;"
+                                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterOperator="StringFilterOperator.StartsWith" AllowFiltering="true"
+                                        Data=@contractors TextProperty="CtR_Name" ValueProperty="CtR_Id" @bind-Value="@transaction.TrN_CTRID" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-2" />
+                    <div class="col-md-10 d-flex justify-content-center">
+                        <Radzen.Blazor.RadzenNumericRangeValidator Component="trnCtrId" Min="1" Text="Należy wybrać kontrahenta!" Popup=@popup Style="position: absolute" />
+                    </div>
+                    <br />
+                </div>
+                <div class="row">
+                    <div class="col-md-2 align-items-center d-flex">
+                        <RadzenLabel Text="Data przelewu" />
+                    </div>
+                    <div class="col-md-10">
+                        <InputDate style="width: 100%;" @bind-Value="@transaction.TrN_ExecutionDate" Name="trnExecutionDate" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-2" />
+                    <div class="col-md-10 d-flex justify-content-center">
+                        <RadzenRequiredValidator Component="trnExecutionDate" Text="Data przelewu jest wymagana!" Popup=@popup Style="position: absolute" />
+                    </div>
+                    <br />
+                </div>
+                <div class="row">
+                    <div class="col-md-2 align-items-center d-flex">
+                        <RadzenLabel Text="Forma płatności" />
+                    </div>
+                    <div class="col-md-10">
+                        <RadzenDropDown AllowClear="false" Name="trnPytId" style="width: 100%;"
+                                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterOperator="StringFilterOperator.StartsWith" AllowFiltering="true"
+                                        Data=@paymentTypes TextProperty="PyT_Name" ValueProperty="PyT_Id" @bind-Value="@transaction.TrN_PYTID" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-2" />
+                    <div class="col-md-10 d-flex justify-content-center">
+                        <Radzen.Blazor.RadzenNumericRangeValidator Component="trnPytId" Min="1" Text="Należy wybrać formę płatności!" Popup=@popup Style="position: absolute" />
+                    </div>
+                    <br />
+                </div>
+                <div class="row">
+                    <div class="col-md-2 align-items-center d-flex">
+                        <RadzenLabel Text="Opis" />
+                    </div>
+                    <div class="col-md-10">
+                        <InputText style="width: 100%;" @bind-Value="@transaction.TrN_Description"  />
+                    </div>
+                </div>
+                <br/>
+                <div class="row ">
+                    <div class="col-md-12 d-flex align-items-end justify-content-end" style="margin-top: 16px;">
+                        <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Secondary" Text="@Properties.Dictionary.sharedCancel" Click="@(x=> Cancel())" />
+                        <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Submit" ButtonStyle="ButtonStyle.Primary">@ButtonText </RadzenButton>
+                    </div>
+                </div>
+            </RadzenFieldset>
+        </div>
+    </div>
+</RadzenTemplateForm>
+@code {
+    [Parameter] public Transaction transaction { get; set; }
+    [Parameter] public string ButtonText { get; set; } = "Zapisz";
+    [Parameter] public EventCallback<Transaction> Submit { get; set; }
+
+    List<Currency> currencies = new List<Currency>();
+    List<Contractor> contractors = new List<Contractor>();
+    List<PaymentType> paymentTypes = new List<PaymentType>();
+    bool popup;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            currencies = await client.GetFromJsonAsync<List<Currency>>("api/currency");
+            contractors = await client.GetFromJsonAsync<List<Contractor>>("api/contractor");
+            paymentTypes = await client.GetFromJsonAsync<List<PaymentType>>("api/paymentType");
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+        }
+    }
+    void Cancel()
+    {
+
+        navigatorManager.NavigateTo("transaction");
+    }
+}

@@ -1,0 +1,67 @@
+﻿@page "/transaction"
+@inject HttpClient client
+@inject IJSRuntime js
+@using HomeEnvironmentLifePlanner.Shared.Models
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@inject NavigationManager navigatorManager
+
+
+<h2><RadzenIcon Icon="receipt_long" /> Transakcje</h2>
+<RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Primary" Click="@(x=> navigatorManager.NavigateTo($"transaction/create"))" Icon="add_box" />
+<br>
+@if (transactions == null)
+{
+    <text>@HomeEnvironmentLifePlanner.Client.Properties.Dictionary.sharedLoading</text>
+}
+else if (transactions.Length == 0)
+{
+    <text>@HomeEnvironmentLifePlanner.Client.Properties.Dictionary.sharedNoRecords</text>
+}
+else
+{
+
+    <RadzenGrid Data="@transactions" AllowFiltering="true" AllowPaging="true" AllowSorting="true" TItem="Transaction" ColumnWidth="200px">
+        <Columns>
+            <RadzenGridColumn TItem="Transaction" Property="TrN_Id" Title="ID" />
+            <RadzenGridColumn TItem="Transaction" Property="TrN_Amount" Title="Kwota" />
+            <RadzenGridColumn TItem="Transaction" Property="Currency.CuR_Name<" Title="Waluta" />
+            <RadzenGridColumn TItem="Transaction" Property="Contractor.CtR_Name" Title="Kontrahent" />
+            <RadzenGridColumn TItem="Transaction" Property="TrN_ExecutionDate" Title="Data przelewu" />
+            <RadzenGridColumn TItem="Transaction" Property="PaymentType.PyT_Name" Title="Typ płatności" />
+            <RadzenGridColumn TItem="Transaction" Property="TrN_CreateDate" Title="Data utworzenia" />
+            <RadzenGridColumn TItem="Transaction" Property="TrN_Description" Title="Opis" />
+
+            <RadzenGridColumn TItem="Transaction" Context="transaction" Title="Akcje">
+                <Template Context="transaction">
+                    <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Primary" Click="@(x=> navigatorManager.NavigateTo($"transaction/edit/{transaction.TrN_Id}"))" Icon="create" />
+                    <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Danger" Click="@(accountId=>Delete(transaction.TrN_Id) )" Icon="delete" />
+                </Template>
+            </RadzenGridColumn>
+        </Columns>
+    </RadzenGrid>
+}
+@code {
+    Transaction[] transactions { get; set; }
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            transactions = await client.GetFromJsonAsync<Transaction[]>("api/transaction");
+
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+        }
+
+    }
+    async Task Delete(int transactionId)
+    {
+        var trr = transactions.First(x => x.TrN_Id == transactionId);
+        if (await js.InvokeAsync<bool>("confirm", $"{HomeEnvironmentLifePlanner.Client.Properties.Dictionary.sharedDeleteConfimation}'s rekord({trr.TrN_Id})?"))
+        {
+            await client.DeleteAsync($"api/transaction/{transactionId}");
+            await OnInitializedAsync();
+        }
+    }
+}

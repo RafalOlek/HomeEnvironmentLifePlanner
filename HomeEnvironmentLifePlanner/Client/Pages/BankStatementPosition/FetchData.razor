@@ -1,0 +1,66 @@
+﻿@page "/bankStatementPosition"
+@inject HttpClient client
+@inject IJSRuntime js
+@using HomeEnvironmentLifePlanner.Shared.Models
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+
+<h3>Waluty</h3>
+<br>
+@if (bsprencies == null)
+{
+    <text>@Properties.Dictionary.sharedLoading</text>
+}
+else if (bsprencies.Length == 0)
+{
+    <text>@Properties.Dictionary.sharedNoRecords</text>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Data realizacji</th>
+                <th>Kwota</th>
+                <th>Waluta</th>
+                <th>Nadawca/odbiorca</th>
+                <th>Opis</th>
+                <th>Typ transakcji</th>
+                <th>Data importu</th>
+                <th>Czy zaimportowany?</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (BankStatementPosition bsp in bsprencies)
+            {
+                <tr>
+                    <td>@bsp.BsP_Id</td>
+                    <td>@bsp.BsP_ExecutionDate</td>
+                    <td>@bsp.BsP_Amount</td>
+                    <td>@bsp.Currency.CuR_Name</td>
+                    <td>@bsp.BsP_SenderReceiver</td>
+                    <td>@bsp.BsP_Description</td>
+                    <td>@bsp.BsP_TransactionType</td>
+                    <td>@bsp.BsP_ImportDate</td>
+                    <td>@bsp.BsP_IsImported</td>
+
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+@code {
+    BankStatementPosition[] bsprencies { get; set; }
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            bsprencies = await client.GetFromJsonAsync<BankStatementPosition[]>("api/bankStatmentPosition");
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+        }
+    }
+
+}

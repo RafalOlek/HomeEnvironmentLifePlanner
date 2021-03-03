@@ -1,0 +1,18 @@
+﻿@page "/UploadBankStatement"
+
+
+
+
+
+
+
+    @code {
+        int progress;
+        string info;
+        void OnProgress(UploadProgressArgs args, string name)
+        {
+            this.info = $"% '{name}' / {args.Loaded} of {args.Total} bytes.";
+            this.progress = args.Progress;
+        }
+
+    }

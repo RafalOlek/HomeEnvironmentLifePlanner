@@ -1,0 +1,13 @@
+﻿@page "/transaction/create"
+@inject HttpClient http
+@inject NavigationManager uriHelper
+<FormTRN ButtonText="@Properties.Dictionary.sharedCreate" transaction="@transaction" Submit="@CreateTransaction" />
+@code {
+    Transaction transaction = new Transaction() ;
+    async Task CreateTransaction()
+    {
+
+        await http.PostAsJsonAsync("api/transaction", transaction);
+        uriHelper.NavigateTo("transaction");
+    }
+}

@@ -1,0 +1,26 @@
+﻿@page "/transaction/edit/{transactionId:int}"
+@inject HttpClient http
+@inject NavigationManager uriHelper
+@inject NotificationService NotificationService
+<FormTRN ButtonText="@Properties.Dictionary.sharedSave" transaction="@transaction" Submit="@EditTransaction" />
+@code {
+    [Parameter] public int transactionId { get; set; }
+    Transaction transaction = new Transaction();
+    protected async override Task OnParametersSetAsync()
+    {
+        transaction = await http.GetFromJsonAsync<Transaction>($"api/transaction/{transactionId}");
+    }
+    async Task EditTransaction()
+    {
+        try
+        {
+            await http.PutAsJsonAsync("api/transaction", transaction);
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = Properties.Dictionary.sharedUpdateOk, Duration = 4000 });
+        }
+        catch (Exception ex)
+        {
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Błąd!", Detail = ex.ToString(), Duration = 4000 });
+        }
+        uriHelper.NavigateTo("transaction");
+    }
+}

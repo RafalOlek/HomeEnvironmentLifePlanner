@@ -1,0 +1,17 @@
+﻿@page "/category/create/{parentId:int}"
+@inject HttpClient http
+@inject NavigationManager uriHelper
+
+<FormCAT ButtonText="@Properties.Dictionary.sharedCreate" category="@category" Submit="@CreateCategory" />
+@code {
+    [Parameter] public int parentId { get; set; }
+
+    Category category = new Category();
+
+    async Task CreateCategory()
+    {
+
+        await http.PostAsJsonAsync($"api/category/{parentId}", category);
+        uriHelper.NavigateTo("category");
+    }
+}

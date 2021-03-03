@@ -1,0 +1,13 @@
+﻿@page "/contractor/create"
+@inject HttpClient http
+@inject NavigationManager uriHelper
+<FormCTR ButtonText="@Properties.Dictionary.sharedCreate" contractor="@contractor" Submit="@CreateContractor" />
+@code {
+    Contractor contractor = new Contractor();
+    async Task CreateContractor()
+    {
+        await http.PostAsJsonAsync("api/contractor", contractor);
+        uriHelper.NavigateTo("contractor");
+    }
+}
+

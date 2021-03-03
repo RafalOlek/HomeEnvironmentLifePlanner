@@ -1,0 +1,14 @@
+﻿@page "/contractorGroup/create/{parentId:int}"
+@inject HttpClient http
+@inject NavigationManager uriHelper
+<FormCTG ButtonText="@Properties.Dictionary.sharedCreate" contractorGroup="@contractorGroup" Submit="@CreateContractorGroup" />
+
+@code {
+    [Parameter] public int parentId { get; set; }
+    ContractorGroup contractorGroup = new ContractorGroup();
+    async Task CreateContractorGroup()
+    {
+        await http.PostAsJsonAsync($"api/contractorGroup/{parentId}", contractorGroup);
+        uriHelper.NavigateTo("contractorGroup");
+    }
+}

@@ -1,0 +1,91 @@
+﻿@using HomeEnvironmentLifePlanner.Shared.Models
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+
+@inject HttpClient Http
+@inject NavigationManager navigatorManager
+@if (categoryType == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <RadzenTemplateForm Data="@categoryType" Submit="@Submit">
+        <DataAnnotationsValidator />
+        <div class="row justify-content-center">
+            <div class="col-md-8 ">
+                <RadzenFieldset Text="Typ kategorii">
+                    <div class="row">
+                        <div class="col-md-2 align-items-center d-flex">
+                            <RadzenLabel Text="Nazwa" />
+                        </div>
+                        <div class="col-md-10">
+                            <RadzenTextBox style="width: 100%;" @bind-Value="@categoryType.CtY_Name" Name="ctyName" />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-2" />
+                        <div class="col-md-10 d-flex justify-content-center">
+                            <RadzenRequiredValidator Component="ctyName" Text="@Properties.Dictionary.sharedNameRequired" Popup=@popup Style="position: absolute" />
+                        </div>
+                        <br />
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-2 align-items-center d-flex">
+                            <RadzenLabel Text="Rodzaj" />
+                        </div>
+                        <div class="col-md-10">
+
+                            <RadzenDropDown AllowClear="false" Name="categoryTypeValue" style="width: 100%;"  Data=@(Enum.GetValues(typeof(CategoryTypeValue)).Cast<CategoryTypeValue>().Select(t => new { xText = t.ToString(), xValue = (int)t }).ToList())
+                                            TextProperty="xText" ValueProperty="xValue"  @bind-Value="@categoryType.CtY_Value" />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-2" />
+                        <div class="col-md-10 d-flex justify-content-center">
+                            <Radzen.Blazor.RadzenNumericRangeValidator Component="categoryTypeValue" Min="1" Text="Należy wybrać rodzaj!" Popup=@popup Style="position: absolute" />
+                        </div>
+                        <br />
+                    </div>
+                    <div class="row ">
+                        <div class="col-md-12 d-flex align-items-end justify-content-end" style="margin-top: 16px;">
+                            <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Secondary" Text="@Properties.Dictionary.sharedCancel" Click="@(x => Cancel())" />
+                            <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Submit" ButtonStyle="ButtonStyle.Primary">@ButtonText </RadzenButton>
+                        </div>
+
+                    </div>
+
+                </RadzenFieldset>
+            </div>
+        </div>
+
+    </RadzenTemplateForm>
+}
+
+
+
+    @code {
+        [Parameter] public CategoryType categoryType { get; set; }
+        [Parameter] public string ButtonText { get; set; } = "Zapisz";
+        [Parameter] public EventCallback<CategoryType> Submit { get; set; }
+        bool popup;
+        protected override async Task OnInitializedAsync()
+        {
+            try
+            {
+                var categoryTypes = await Http.GetFromJsonAsync<List<CategoryType>>("api/categoryType");
+       
+
+            }
+            catch (AccessTokenNotAvailableException exception)
+            {
+                exception.Redirect();
+            }
+        }
+
+        void Cancel()
+        {
+
+            navigatorManager.NavigateTo("categoryType");
+        }
+    }

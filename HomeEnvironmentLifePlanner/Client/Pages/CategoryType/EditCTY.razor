@@ -1,0 +1,30 @@
+﻿@page "/categoryType/edit/{categoryTypeId:int}"
+@inject HttpClient http
+@inject NavigationManager uriHelper
+@inject NotificationService NotificationService
+
+<h3>Edit</h3>
+<FormCTY ButtonText="@Properties.Dictionary.sharedSave" categoryType="@categoryType" Submit="@EditCategoryType" />
+
+@code {
+    [Parameter] public int categoryTypeId { get; set; }
+    CategoryType categoryType = new CategoryType();
+    protected async override Task OnParametersSetAsync()
+    {
+        categoryType = await http.GetFromJsonAsync<CategoryType>($"api/categoryType/{categoryTypeId}");
+    }
+    async Task EditCategoryType()
+    {
+        try
+        {
+            await http.PutAsJsonAsync("api/categoryType", categoryType);
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = Properties.Dictionary.sharedUpdateOk, Duration = 4000 });
+        }
+        catch (Exception ex)
+        {
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Błąd!", Detail = ex.ToString(), Duration = 4000 });
+
+        }
+        uriHelper.NavigateTo("categoryType");
+    }
+}

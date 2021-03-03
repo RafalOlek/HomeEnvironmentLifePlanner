@@ -1,0 +1,13 @@
+﻿@page "/paymentType/create"
+@inject HttpClient http
+@inject NavigationManager uriHelper
+<h3>Create</h3>
+<FormPTY ButtonText="@Properties.Dictionary.sharedCreate" paymentType="@paymentType" Submit="@CreatePaymentType" />
+@code {
+    PaymentType paymentType = new PaymentType();
+    async Task CreatePaymentType()
+    {
+        await http.PostAsJsonAsync("api/paymentType", paymentType);
+        uriHelper.NavigateTo("paymentType");
+    }
+}

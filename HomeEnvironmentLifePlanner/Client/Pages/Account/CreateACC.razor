@@ -1,0 +1,13 @@
+﻿@page "/account/create"
+@inject HttpClient http
+@inject NavigationManager uriHelper
+
+<FormACC ButtonText="@Properties.Dictionary.sharedCreate" account="@account" Submit="@CreateAccount" />
+@code {
+    Account account = new Account();
+    async Task CreateAccount()
+    {
+        await http.PostAsJsonAsync("api/account", account);
+        uriHelper.NavigateTo("account");
+    }
+}

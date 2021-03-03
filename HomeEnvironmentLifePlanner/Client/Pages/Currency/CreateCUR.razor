@@ -1,0 +1,13 @@
+﻿@page "/currency/create"
+@inject HttpClient http
+@inject NavigationManager uriHelper
+<h3>Create</h3>
+<FormCUR ButtonText="Dodaj walutę" currency="@currency" Submit="@CreateCurrency" />
+@code {
+    Currency currency = new Currency();
+    async Task CreateCurrency()
+    {
+        await http.PostAsJsonAsync("api/currency", currency);
+        uriHelper.NavigateTo("currency");
+    }
+}

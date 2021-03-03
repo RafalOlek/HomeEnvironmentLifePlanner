@@ -1,0 +1,26 @@
+﻿@page "/currency/edit/{currencyId:int}"
+@inject HttpClient http
+@inject NavigationManager uriHelper
+@inject NotificationService NotificationService
+<FormCUR ButtonText="@Properties.Dictionary.sharedSave" currency="@currency" Submit="@EditCurrency" />
+@code {
+    [Parameter] public int currencyId { get; set; }
+    Currency currency = new Currency();
+    protected async override Task OnParametersSetAsync()
+    {
+        currency = await http.GetFromJsonAsync<Currency>($"api/currency/{currencyId}");
+    }
+    async Task EditCurrency()
+    {
+        try
+        {
+            await http.PutAsJsonAsync("api/currency", currency);
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = Properties.Dictionary.sharedUpdateOk, Duration = 4000 });
+        }
+        catch (Exception ex)
+        {
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Błąd!", Detail = ex.ToString(), Duration = 4000 });
+        }
+        uriHelper.NavigateTo("currency");
+    }
+}

@@ -1,0 +1,27 @@
+﻿@page "/account/edit/{accountId:int}"
+@inject HttpClient http
+@inject NavigationManager uriHelper
+@inject NotificationService NotificationService
+
+<FormACC ButtonText="@Properties.Dictionary.sharedSave" account="@account" Submit="@EditAccount" />
+@code {
+        [Parameter] public int accountId { get; set; }
+        Account account = new Account();
+    protected async override Task OnParametersSetAsync()
+    {
+        account = await http.GetFromJsonAsync<Account>($"api/account/{accountId}");
+    }
+    async Task EditAccount()
+    {
+        try
+        {
+            await http.PutAsJsonAsync("api/account", account);
+            NotificationService.Notify(new NotificationMessage{ Severity = NotificationSeverity.Success, Summary = Properties.Dictionary.sharedUpdateOk, Duration = 4000 });
+        }
+        catch (Exception ex)
+        {
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Błąd!" ,Detail=ex.ToString(), Duration = 4000 });
+        }
+        uriHelper.NavigateTo("account");
+    }
+}

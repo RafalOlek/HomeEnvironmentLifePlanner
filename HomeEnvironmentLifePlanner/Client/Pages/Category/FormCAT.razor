@@ -1,0 +1,136 @@
+﻿@using HomeEnvironmentLifePlanner.Shared.Models
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@inject HttpClient client
+@inject NavigationManager navigatorManager
+
+@if (category == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <RadzenTemplateForm Data="@category" Submit="@Submit">
+        <DataAnnotationsValidator />
+        <div class="row justify-content-center">
+            <div class="col-md-8 ">
+                <RadzenFieldset Text="Kategoria">
+                    <div class="row">
+                        <div class="col-md-2 align-items-center d-flex">
+                            <RadzenLabel Text="Nazwa" />
+                        </div>
+                        <div class="col-md-10">
+                            <RadzenTextBox style="width: 100%;" @bind-Value="@category.CaT_Name" Name="catName" />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-2" />
+                        <div class="col-md-10 d-flex justify-content-center">
+                            <RadzenRequiredValidator Component="catName" Text="@Properties.Dictionary.sharedNameRequired" Popup=@popup Style="position: absolute" />
+                        </div>
+                        <br />
+                    </div>
+                    <div class="row">
+                        <div class="col-md-2 align-items-center d-flex">
+                            <RadzenLabel Text="Opis" />
+                        </div>
+                        <div class="col-md-10">
+                            <RadzenTextBox style="width: 100%;" @bind-Value="@category.CaT_Description" />
+                        </div>
+                    </div>
+                    <br />
+                    <div class="row">
+                        <div class="col-md-2 align-items-center d-flex">
+                            <RadzenLabel Text="Numer referencyjny" />
+                        </div>
+                        <div class="col-md-10">
+                            <RadzenTextBox style="width: 100%;" @bind-Value="@category.CaT_ReferenceNumber" Name="catReferenceNumber" />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-2" />
+                        <div class="col-md-10 d-flex justify-content-center">
+                            <RadzenRequiredValidator Component="catReferenceNumber" Text="@Properties.Dictionary.sharedReferenceNumberRequired" Popup=@popup Style="position: absolute" />
+                        </div>
+                        <br />
+                    </div>
+                    @if ( category.CaT_Id == 1 || category.CaT_ParentId == 1)
+                    {
+                    <div class="row">
+                        <div class="col-md-2 align-items-center d-flex">
+                            <RadzenLabel Text="Typ" />
+                        </div>
+                        <div class="col-md-10">
+                            <RadzenDropDown AllowClear="false" Name="catCtyId" style="width: 100%;"
+                                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterOperator="StringFilterOperator.StartsWith" AllowFiltering="true"
+                                            Data=@categoryTypes TextProperty="CtY_Name" ValueProperty="CtY_Id" @bind-Value="@category.CaT_CTYID" />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-2" />
+                        <div class="col-md-10 d-flex justify-content-center">
+                            <Radzen.Blazor.RadzenNumericRangeValidator Component="catCtyId" Min="1" Text="Należy wybrać typ!" Popup=@popup Style="position: absolute" />
+                        </div>
+                        <br />
+                    </div>
+                    }
+              
+                    @*<div class="row">
+                        <div class="col-md-2 align-items-center d-flex">
+                            <RadzenLabel Text="Grupa" />
+                        </div>
+                        <div class="col-md-10">
+                            <RadzenDropDown AllowClear="false" Name="catGroup" style="width: 100%;"
+                                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterOperator="StringFilterOperator.StartsWith" AllowFiltering="true"
+                                            Data=@categories TextProperty="CaT_Name" ValueProperty="CaT_Id" @bind-Value="@category.CaT_ParentId" />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-2" />
+                        <div class="col-md-10 d-flex justify-content-center">
+                            <Radzen.Blazor.RadzenNumericRangeValidator Component="catGroup" Min="1" Text="Należy wybrać typ!" Popup=@popup Style="position: absolute" />
+                        </div>
+                        <br />
+                    </div>*@
+                    <div class="row ">
+                        <div class="col-md-12 d-flex align-items-end justify-content-end" style="margin-top: 16px;">
+                            <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Secondary" Text="@Properties.Dictionary.sharedCancel" Click="@(x=> Cancel())" />
+                            <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Submit" ButtonStyle="ButtonStyle.Primary">@ButtonText </RadzenButton>
+                        </div>
+
+                    </div>
+
+                </RadzenFieldset>
+            </div>
+        </div>
+
+    </RadzenTemplateForm>
+}
+@code {
+    [Parameter] public Category category { get; set; }
+    [Parameter] public string ButtonText { get; set; } = "Zapisz";
+    [Parameter] public EventCallback<Category> Submit { get; set; }
+    List<CategoryType> categoryTypes = new List<CategoryType>();
+    List<Category> categories = new List<Category>();
+
+    bool popup;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            categoryTypes = await client.GetFromJsonAsync<List<CategoryType>>("api/categoryType");
+            categories = await client.GetFromJsonAsync<List<Category>>("api/category");
+
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+        }
+    }
+    void Cancel()
+    {
+
+        navigatorManager.NavigateTo("category");
+    }
+}

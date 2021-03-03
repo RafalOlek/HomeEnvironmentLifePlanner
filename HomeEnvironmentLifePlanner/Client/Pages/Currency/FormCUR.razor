@@ -1,0 +1,65 @@
+﻿
+
+@using HomeEnvironmentLifePlanner.Shared.Models
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@inject HttpClient Http
+@inject NavigationManager navigatorManager
+
+
+
+<RadzenTemplateForm Data="@currency" Submit="@Submit">
+    <DataAnnotationsValidator />
+    <div class="row justify-content-center">
+        <div class="col-md-8 ">
+            <RadzenFieldset Text="Waluta">
+                <div class="row">
+                    <div class="col-md-2 align-items-center d-flex">
+                        <RadzenLabel Text="Nazwa" />
+                    </div>
+                    <div class="col-md-10">
+                        <RadzenTextBox style="width: 100%;" @bind-Value="@currency.CuR_Name" Name="curName" />
+                    </div>
+
+                </div>
+                <div class="row">
+                    <div class="col-md-2" />
+                    <div class="col-md-10 d-flex justify-content-center">
+                        <RadzenRequiredValidator Component="curName" Text="@Properties.Dictionary.sharedNameRequired" Popup=@popup Style="position: absolute" />
+                    </div>
+                    <br />
+                </div>
+
+                <div class="row">
+                    <div class="col-md-12 d-flex align-items-end justify-content-end" style="margin-top: 16px;">
+                        <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Secondary" Text="@Properties.Dictionary.sharedCancel" Click="@(x=> Cancel())" />
+                        <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Submit" ButtonStyle="ButtonStyle.Primary">@ButtonText </RadzenButton>
+                    </div>
+
+                </div>
+
+            </RadzenFieldset>
+        </div>
+    </div>
+
+</RadzenTemplateForm>
+@code {
+    [Parameter] public Currency currency { get; set; }
+    [Parameter] public string ButtonText { get; set; } = "Zapisz";
+    [Parameter] public EventCallback<Currency> Submit { get; set; }
+    bool popup;
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var currencies = await Http.GetFromJsonAsync<List<Currency>>("api/currency");
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+        }
+    }
+    void Cancel()
+    {
+        navigatorManager.NavigateTo("currency");
+    }
+}

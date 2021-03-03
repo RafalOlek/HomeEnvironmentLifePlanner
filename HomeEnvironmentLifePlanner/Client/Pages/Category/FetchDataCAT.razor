@@ -1,0 +1,95 @@
+﻿@page "/category"
+@inject HttpClient client
+@inject IJSRuntime js
+@using HomeEnvironmentLifePlanner.Shared.Models
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@inject NavigationManager navigatorManager
+@inject NotificationService NotificationService
+
+<h2><RadzenIcon Icon="category" /> Kategorie</h2>
+<br>
+@if (categories == null)
+{
+    <text>@HomeEnvironmentLifePlanner.Client.Properties.Dictionary.sharedLoading</text>
+}
+else if (categories.Count() == 0)
+{
+    <text>@HomeEnvironmentLifePlanner.Client.Properties.Dictionary.sharedNoRecords</text>
+}
+else
+{
+    <RadzenCard Style="height:100%">
+        <div class="row">
+            <div class="col-md-6">
+                <RadzenTree Change=@OnChange Data=@categories.Where(x=>x.CaT_ParentId==null) Expand=@OnExpand Style="width: 100%;">
+                    <RadzenTreeLevel TextProperty="CaT_Name" Expanded="(x) =>true" />
+                </RadzenTree>
+            </div>
+            <div class="col-md-6">
+                <RadzenCard>
+                    <div style="margin-top:20px">Nazwa Kategorii: <b>@categories.Where(x => x.CaT_Id == catParentId).FirstOrDefault().CaT_Name</b></div>
+                    <div>ID:<b>@categories.Where(x => x.CaT_Id == catParentId).FirstOrDefault().CaT_Id</b></div>
+                    <div style="margin-top:20px">Opis: <b>@categories.Where(x => x.CaT_Id == catParentId).FirstOrDefault().CaT_Description</b></div>
+                    <div style="margin-top:20px">Typ: <b>@categories.Where(x => x.CaT_Id == catParentId).FirstOrDefault().CategoryType.CtY_Name</b></div>
+                    <div style="margin-top:20px">Numer Referencyjny: <b>@categories.Where(x => x.CaT_Id == catParentId).FirstOrDefault().CaT_ReferenceNumber</b></div>
+                    <br />
+                    <div>
+                        <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Primary" Click="@(x=> navigatorManager.NavigateTo($"category/edit/{catParentId}"))" Icon="create" />
+                        <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Danger" Click="@(accountId=>Delete(catParentId) )" Icon="delete" />
+                        <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Primary" Click="@(x=> navigatorManager.NavigateTo($"category/create/{catParentId}"))" Icon="add_box" />
+                    </div>
+                </RadzenCard>
+            </div>
+        </div>
+    </RadzenCard>
+}
+@code {
+    IEnumerable<Category> categories { get; set; }
+    int? catParentId = 1;
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            catParentId = 1;
+            categories = await client.GetFromJsonAsync<IEnumerable<Category>>("api/category");
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+        }
+    }
+    async Task Delete(int? categoryId)
+    {
+        var cat = categories.First(x => x.CaT_Id == categoryId);
+        if (await js.InvokeAsync<bool>("confirm", $"{HomeEnvironmentLifePlanner.Client.Properties.Dictionary.sharedDeleteConfimation} {cat.CaT_Name}'s ({cat.CaT_Id})?"))
+        {
+            if (categories.Where(x => x.CaT_ParentId == categoryId).Any())
+                NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Błąd!", Detail = Properties.Dictionary.sharedDeleteExistsChild, Duration = 4000 });
+            else if (categoryId == 1)
+                NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Błąd!", Detail = Properties.Dictionary.sharedDeleteHeadParent, Duration = 4000 });
+            else
+            {
+                await client.DeleteAsync($"api/category/{categoryId}");
+                NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "", Detail = Properties.Dictionary.sharedDeleteOk, Duration = 4000 });
+                categories = null;
+                this.StateHasChanged();
+                await OnInitializedAsync();
+            }
+        }
+    }
+    void OnChange(TreeEventArgs args)
+    {
+        if (args.Value is Category categoryx)
+        {
+            catParentId = categoryx.CaT_Id;
+        }
+    }
+    void OnExpand(TreeExpandEventArgs args)
+    {
+        var category = args.Value as Category;
+
+        args.Children.Data = categories.Where(x => x.CaT_ParentId == category.CaT_Id);
+        args.Children.TextProperty = "CaT_Name";
+        args.Children.HasChildren = (x) => (categories.Where(x => x.CaT_ParentId == category.CaT_Id).Any()) ? true : false;
+    }
+}

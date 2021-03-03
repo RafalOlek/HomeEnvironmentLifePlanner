@@ -1,0 +1,27 @@
+﻿@page "/contractor/edit/{contractorId:int}"
+@inject HttpClient http
+@inject NavigationManager uriHelper
+@inject NotificationService NotificationService
+<FormCTR ButtonText="@Properties.Dictionary.sharedSave" contractor="@contractor" Submit="@EditContractor" />
+@code {
+    [Parameter] public int contractorId { get; set; }
+    Contractor contractor = new Contractor();
+    protected async override Task OnParametersSetAsync()
+    {
+        contractor = await http.GetFromJsonAsync<Contractor>($"api/contractor/{contractorId}");
+    }
+    async Task EditContractor()
+    {
+        try
+        {
+            await http.PutAsJsonAsync("api/contractor", contractor);
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = Properties.Dictionary.sharedUpdateOk, Duration = 4000 });
+        }
+        catch (Exception ex)
+        {
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Błąd!", Detail = ex.ToString(), Duration = 4000 });
+
+        }
+        uriHelper.NavigateTo("contractor");
+    }
+}

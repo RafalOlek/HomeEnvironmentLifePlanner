@@ -1,0 +1,95 @@
+﻿@using HomeEnvironmentLifePlanner.Shared.Models
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+
+@inject HttpClient client
+@inject NavigationManager navigatorManager
+
+<RadzenTemplateForm Data="@paymentType" Submit="@Submit">
+    <DataAnnotationsValidator />
+    <div class="row justify-content-center">
+        <div class="col-md-8 ">
+            <RadzenFieldset Text="Forma płatności">
+                <div class="row">
+                    <div class="col-md-2 align-items-center d-flex">
+                        <RadzenLabel Text="Nazwa" />
+                    </div>
+                    <div class="col-md-10">
+                        <RadzenTextBox style="width: 100%;" @bind-Value="@paymentType.PyT_Name" Name="pytName" />
+                    </div>
+
+                </div>
+                <div class="row">
+                    <div class="col-md-2" />
+                    <div class="col-md-10 d-flex justify-content-center">
+                        <RadzenRequiredValidator Component="pytName" Text="@Properties.Dictionary.sharedNameRequired" Popup=@popup Style="position: absolute" />
+                    </div>
+                    <br />
+                </div>
+                <div class="row">
+                    <div class="col-md-2 align-items-center d-flex">
+                        <RadzenLabel Text="Numer referencyjny" />
+                    </div>
+                    <div class="col-md-10">
+                        <RadzenTextBox style="width: 100%;" @bind-Value="@paymentType.PyT_ReferenceNumber" Name="pytReferenceNumber" />
+                    </div>
+
+                </div>
+                <div class="row">
+                    <div class="col-md-2" />
+                    <div class="col-md-10 d-flex justify-content-center">
+                        <RadzenRequiredValidator Component="pytReferenceNumber" Text="@Properties.Dictionary.sharedReferenceNumberRequired" Popup=@popup Style="position: absolute" />
+                    </div>
+                    <br />
+                </div>
+                <br />
+                <div class="row">
+                    <div class="col-md-2 align-items-center d-flex">
+                        <RadzenLabel Text="Konto" />
+                    </div>
+                    <div class="col-md-10">
+                        <RadzenDropDown AllowClear="false" Name="pytAccId" style="width: 100%;"
+                                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterOperator="StringFilterOperator.StartsWith" AllowFiltering="true"
+                                        Data=@accounts TextProperty="AcC_Name" ValueProperty="AcC_Id" @bind-Value="@paymentType.PyT_ACCID" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-2" />
+                    <div class="col-md-10 d-flex justify-content-center">
+                        <Radzen.Blazor.RadzenNumericRangeValidator Component="pytAccId" Min="1" Text="Należy wybrać konto!" Popup=@popup Style="position: absolute" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12 d-flex align-items-end justify-content-end" style="margin-top: 16px;">
+                        <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Secondary" Text="@Properties.Dictionary.sharedCancel" Click="@(x=> Cancel())" />
+                        <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Submit" ButtonStyle="ButtonStyle.Primary">@ButtonText </RadzenButton>
+                    </div>
+                </div>
+
+            </RadzenFieldset>
+        </div>
+    </div>
+</RadzenTemplateForm>
+@code {
+    [Parameter] public PaymentType paymentType { get; set; }
+    [Parameter] public string ButtonText { get; set; } = "Zapisz";
+    [Parameter] public EventCallback<PaymentType> Submit { get; set; }
+    bool popup;
+    List<Account> accounts = new List<Account>();
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            accounts = await client.GetFromJsonAsync<List<Account>>("api/account");
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+        }
+    }
+    void Cancel()
+    {
+
+        navigatorManager.NavigateTo("paymentType");
+    }
+
+}

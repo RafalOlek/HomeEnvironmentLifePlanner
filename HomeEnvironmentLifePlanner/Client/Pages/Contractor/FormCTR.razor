@@ -1,0 +1,159 @@
+﻿@using HomeEnvironmentLifePlanner.Shared.Models
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+
+@inject HttpClient client
+@inject NavigationManager navigatorManager
+
+
+
+<RadzenTemplateForm Data="@contractor" Submit="@Submit">
+    <DataAnnotationsValidator />
+    <div class="row justify-content-center">
+        <div class="col-md-8 ">
+            <RadzenFieldset Text="Kontrahent">
+                <div class="row">
+                    <div class="col-md-2 align-items-center d-flex">
+                        <RadzenLabel Text="Akronim" />
+                    </div>
+                    <div class="col-md-10">
+                        <RadzenTextBox style="width: 100%;" @bind-Value="@contractor.CtR_Acronym" Name="ctrAcronym" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-2" />
+                    <div class="col-md-10 d-flex justify-content-center">
+                        <RadzenRequiredValidator Component="ctrAcronym" Text="@Properties.Dictionary.sharedAcronymRequired" Popup=@popup Style="position: absolute" />
+                    </div>
+                    <br />
+                </div>
+                <div class="row">
+                    <div class="col-md-2 align-items-center d-flex">
+                        <RadzenLabel Text="Nazwa" />
+                    </div>
+                    <div class="col-md-10">
+                        <RadzenTextBox style="width: 100%;" @bind-Value="@contractor.CtR_Name" Name="ctrName" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-2" />
+                    <div class="col-md-10 d-flex justify-content-center">
+                        <RadzenRequiredValidator Component="ctrName" Text="@Properties.Dictionary.sharedNameRequired" Popup=@popup Style="position: absolute" />
+                    </div>
+                    <br />
+                </div>
+                <div class="row">
+                    <div class="col-md-2 align-items-center d-flex">
+                        <RadzenLabel Text="Numer referencyjny" />
+                    </div>
+                    <div class="col-md-10">
+                        <RadzenTextBox style="width: 100%;" @bind-Value="@contractor.CtR_ReferenceNumber" Name="ctrReferenceNumber" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-2" />
+                    <div class="col-md-10 d-flex justify-content-center">
+                        <RadzenRequiredValidator Component="ctrReferenceNumber" Text="@Properties.Dictionary.sharedReferenceNumberRequired" Popup=@popup Style="position: absolute" />
+                    </div>
+                    <br />
+                </div>
+                <div class="row">
+                    <div class="col-md-2 align-items-center d-flex">
+                        <RadzenLabel Text="Kraj" />
+                    </div>
+                    <div class="col-md-10">
+                        <RadzenTextBox style="width: 100%;" @bind-Value="@contractor.CtR_Country" Name="ctrCountry" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-2" />
+                    <div class="col-md-10 d-flex justify-content-center">
+                        <RadzenRequiredValidator Component="ctrCountry" Text="Kraj jest wymagany!" Popup=@popup Style="position: absolute" />
+                    </div>
+                    <br />
+                </div>
+                <div class="row">
+                    <div class="col-md-2 align-items-center d-flex">
+                        <RadzenLabel Text="Miasto" />
+                    </div>
+                    <div class="col-md-10">
+                        <RadzenTextBox style="width: 100%;" @bind-Value="@contractor.CtR_City" Name="ctrCity" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-2" />
+                    <div class="col-md-10 d-flex justify-content-center">
+                        <RadzenRequiredValidator Component="ctrCity" Text="Miasto jest wymagane!" Popup=@popup Style="position: absolute" />
+                    </div>
+                    <br />
+                </div>
+                <div class="row">
+                    <div class="col-md-2 align-items-center d-flex">
+                        <RadzenLabel Text="Ulica" />
+                    </div>
+                    <div class="col-md-10">
+                        <RadzenTextBox style="width: 100%;" @bind-Value="@contractor.CtR_Street" Name="ctrStreet" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-2" />
+                    <div class="col-md-10 d-flex justify-content-center">
+                        <RadzenRequiredValidator Component="ctrStreet" Text="Ulica jest wymagana!" Popup=@popup Style="position: absolute" />
+                    </div>
+                    <br />
+                </div>
+                <br />
+                <div class="row">
+                    <div class="col-md-2 align-items-center d-flex">
+                        <RadzenLabel Text="Grupa" />
+                    </div>
+                    <div class="col-md-10">
+                        <RadzenDropDown AllowClear="false" Name="ctrCtgId" style="width: 100%;"
+                                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterOperator="StringFilterOperator.StartsWith" AllowFiltering="true"
+                                        Data=@contractorGroups TextProperty="CtG_Name" ValueProperty="CtG_Id" @bind-Value="@contractor.CtR_CTGID" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-2" />
+                    <div class="col-md-10 d-flex justify-content-center">
+                        <Radzen.Blazor.RadzenNumericRangeValidator Component="ctrCtgId" Min="1" Text="Należy wybrać grupę!" Popup=@popup Style="position: absolute" />
+                    </div>
+                    <br />
+                </div>
+                <div class="row">
+                    <div class="col-md-12 d-flex align-items-end justify-content-end" style="margin-top: 16px;">
+                        <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Secondary" Text="@Properties.Dictionary.sharedCancel" Click="@(x=> Cancel())" />
+                        <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Submit" ButtonStyle="ButtonStyle.Primary">@ButtonText </RadzenButton>
+                    </div>
+
+                </div>
+
+            </RadzenFieldset>
+        </div>
+    </div>
+
+</RadzenTemplateForm>
+@code {
+    [Parameter] public Contractor contractor { get; set; }
+    [Parameter] public string ButtonText { get; set; } = "Zapisz";
+    [Parameter] public EventCallback<Contractor> Submit { get; set; }
+    List<ContractorGroup> contractorGroups = new List<ContractorGroup>();
+    bool popup;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            contractorGroups = await client.GetFromJsonAsync<List<ContractorGroup>>("api/contractorGroup");
+
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+        }
+    }
+    void Cancel()
+    {
+
+        navigatorManager.NavigateTo("contractor");
+    }
+}
