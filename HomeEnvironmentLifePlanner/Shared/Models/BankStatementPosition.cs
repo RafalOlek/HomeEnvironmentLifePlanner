@@ -19,7 +19,8 @@ namespace HomeEnvironmentLifePlanner.Shared.Models
         public string BsP_SenderReceiver { get; set; }
         public string BsP_Description { get; set; }
         public string BsP_TransactionType { get; set; }
-        public bool BsP_IsImported { get; set; }
+        public bool BsP_IsImportedToTransactions { get; set; }
+        public bool Bsp_IsPreparedToImport { get; set; }
         public DateTime BsP_ImportDate { get; set; }
         public int? BsP_RecommendedContractorId { get; set; }
         public int? BsP_RecommendedAccountId { get; set; }

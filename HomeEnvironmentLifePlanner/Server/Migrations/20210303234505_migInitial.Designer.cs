@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HomeEnvironmentLifePlanner.Server.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20210227213438_mig1")]
-    partial class mig1
+    [Migration("20210303234505_migInitial")]
+    partial class migInitial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -179,7 +179,7 @@ namespace HomeEnvironmentLifePlanner.Server.Migrations
                     b.Property<DateTime>("BsP_ImportDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<bool>("BsP_IsImported")
+                    b.Property<bool>("BsP_IsImportedToTransactions")
                         .HasColumnType("bit");
 
                     b.Property<int?>("BsP_RecommendedAccountId")
@@ -193,6 +193,9 @@ namespace HomeEnvironmentLifePlanner.Server.Migrations
 
                     b.Property<string>("BsP_TransactionType")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("Bsp_IsPreparedToImport")
+                        .HasColumnType("bit");
 
                     b.HasKey("BsP_Id");
 

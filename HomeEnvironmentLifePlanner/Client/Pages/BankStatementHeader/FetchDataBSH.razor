@@ -16,9 +16,8 @@
 }
 else if (bankStatementHeaders.Count() == 0)
 {
-    <RadzenUpload Url="api/BankStatementHeader/Create" Style="margin-bottom: 20px;"
-                  Progress=@(args => OnProgress(args, "Single file upload")) Accept=".xlsx,.xls" ChooseText="Wgraj wyciąg">
-    </RadzenUpload>
+    <RadzenUpload Url="api/BankStatementHeader/Create" Style="margin-bottom: 20px;" Accept=".xlsx,.xls" ChooseText="Wgraj wyciąg" />
+    <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Danger" Click="@(() => (BSPAddSelectedToTransactions()) )" Text="Zaksięguj wybrane." />
     <text>@Properties.Dictionary.sharedNoRecords</text>
 
 }
@@ -26,6 +25,7 @@ else
 {
     <RadzenGrid @ref="bshGrid" Data="@bankStatementHeaders" AllowFiltering="true" AllowPaging="true" AllowSorting="true" TItem="BankStatementHeader" RowSelect="@(args => BSHRowSelectionChanged(args))" Value="@bankStatementHeader" PageSize="3">
         <Columns>
+
             <RadzenGridColumn TItem="BankStatementHeader" Property="BsH_Id" Title="ID" Width="80px" />
             <RadzenGridColumn TItem="BankStatementHeader" Property="BsH_Name" Title="Nazwa wyciągu" />
             <RadzenGridColumn TItem="BankStatementHeader" Property="BsH_CreateDate" Title="Data wczytania wyciagu:" Format="date" />
@@ -41,25 +41,21 @@ else
             </RadzenGridColumn>
             <RadzenGridColumn TItem="BankStatementHeader" Context="bankStatementHeader" Title="Akcje" Width="160px">
                 <Template Context="bankStatementHeader">
-                    <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Danger" Click="@(contractorId => Delete(bankStatementHeader.BsH_Id) )" Icon="delete" />
+                    <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Danger" Click="@(contractorId => BSHDelete(bankStatementHeader.BsH_Id) )" Icon="delete" />
                     <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Danger" Click="@(bsh => RefillEmptyRecommendedContractor(bankStatementHeader) )" Icon="shuffle" />
                 </Template>
             </RadzenGridColumn>
         </Columns>
     </RadzenGrid>
-    <RadzenUpload Url="api/BankStatementHeader/Create" Style="margin-bottom: 20px;" Progress=@(args => OnProgress(args, "Single file upload")) Accept=".xlsx,.xls" ChooseText="Wgraj wyciąg" />
+    <RadzenUpload Url="api/BankStatementHeader/Create" Style="margin-bottom: 20px;" Accept=".xlsx,.xls" ChooseText="Wgraj wyciąg" />
+    <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Danger" Click="@(() => (BSPAddSelectedToTransactions()) )" Text="Zaksięguj wybrane." />
     <RadzenLabel Text="@(bankStatementPosition==null?"": bankStatementPosition.BsP_Id.ToString())" Style="color:red" />
-
     <RadzenGrid @ref="bspGrid" Data="@bankStatementHeader.BankStatementPositions" AllowFiltering="true" AllowPaging="true" AllowSorting="true" TItem="BankStatementPosition" PageSize="100" ExpandMode="DataGridExpandMode.Single" Value="@bankStatementPosition" RowExpand="@(args => BSPRowExpand(args))" RowCollapse="@(args => BSPRowCollapse(args))">
         <Template Context="bsp">
-
-           
-                <div class="col-md-10">
-                    <RadzenLabel Text="@sumWarningText" Style="color:red" Visible="@sumWarning" />
-                </div>
-            
-
-            <RadzenGrid @ref="bssGrid" Data="@bankStatementSubPositions" TItem="BankStatementSubPosition" Style="width:30%;margin-left:14px" RowUpdate="@(args => OnUpdateRow(args))">
+            <div class="col-md-10">
+                <RadzenLabel Text="@sumWarningText" Style="color:red" Visible="@sumWarning" />
+            </div>
+            <RadzenGrid @ref="bssGrid" Data="@bankStatementSubPositions" TItem="BankStatementSubPosition" Style="width:35%;margin-left:14px" RowUpdate="@(args => OnUpdateRow(args))">
                 <Columns>
                     <RadzenGridColumn TItem="BankStatementSubPosition" Property="BsS_Amount" Title="Kwota" Width="200px">
                         <Template Context="bss">
@@ -73,20 +69,31 @@ else
                                             Data=@categories TextProperty="CaT_Name" ValueProperty="CaT_Id" @bind-Value="@bss.BsS_CATID" Change="args => BSSChange(bss)" />
                         </Template>
                     </RadzenGridColumn>
+                    <RadzenGridColumn TItem="BankStatementSubPosition" Context="bss" Title="Akcje" Width="80px">
+                        <Template Context="bss">
+                            <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Danger" Click="@(() => BSSDelete(bss.BsS_Id) )" Icon="delete" />
+                        </Template>
+                    </RadzenGridColumn>
+
                 </Columns>
             </RadzenGrid>
             <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Primary" Click="@(x=>InsertRow())" Icon="format_list_bulleted" />
         </Template>
         <Columns>
+            <RadzenGridColumn TItem="BankStatementPosition" Property="Bsp_IsPreparedToImport" Title="Przygotowany do zaimportowania" Width="80px">
+                <Template Context="bsp">
+                    <RadzenCheckBox TValue="bool" Value="bsp.Bsp_IsPreparedToImport" />
+                </Template>
+            </RadzenGridColumn>
             <RadzenGridColumn TItem="BankStatementPosition" Property="BsP_Amount" Title="Kwota" Width="80px" />
             <RadzenGridColumn TItem="BankStatementPosition" Property="BsP_Description" Title="Opis">
                 <Template Context="bsp">
                     <p style="white-space:pre-wrap">@bsp.BsP_Description</p>
                 </Template>
             </RadzenGridColumn>
-            <RadzenGridColumn TItem="BankStatementPosition" Property="BsP_IsImported" Title="Zaimportowany" Width="80px">
+            <RadzenGridColumn TItem="BankStatementPosition" Property="BsP_IsImportedToTransactions" Title="Zaimportowany" Width="80px">
                 <Template Context="bsp">
-                    <RadzenCheckBox TValue="bool" Value="bsp.BsP_IsImported" Disabled="true" />
+                    <RadzenCheckBox TValue="bool" Value="bsp.BsP_IsImportedToTransactions" Disabled="true" />
                 </Template>
             </RadzenGridColumn>
             <RadzenGridColumn TItem="BankStatementPosition" Property="BsP_SenderReceiver" Title="Nadawca/odbiorca" Width="200px">
@@ -127,7 +134,6 @@ else
                     }
                 </Template>
             </RadzenGridColumn>
-
         </Columns>
     </RadzenGrid>
 }
@@ -175,7 +181,7 @@ else
         this.StateHasChanged();
         await OnInitializedAsync();
     }
-    async Task Delete(int? bankStatementHeaderId)
+    async Task BSHDelete(int? bankStatementHeaderId)
     {
         var bsh = bankStatementHeaders.First(x => x.BsH_Id == bankStatementHeaderId);
         if (await js.InvokeAsync<bool>("confirm", $"{HomeEnvironmentLifePlanner.Client.Properties.Dictionary.sharedDeleteConfimation} {bsh.BsH_Name}'s ({bsh.BsH_Id})?"))
@@ -187,6 +193,21 @@ else
             await OnInitializedAsync();
         }
     }
+    async Task BSPAddSelectedToTransactions()
+    {
+        string tmp = "";
+
+        NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "", Detail = tmp, Duration = 4000 });
+    }
+    async Task BSSDelete(int? bankStatementSubPositionId)
+    {
+        await client.DeleteAsync($"api/bankStatementSubPosition/{bankStatementSubPositionId}");
+        NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "", Detail = Properties.Dictionary.sharedDeleteOk, Duration = 4000 });
+        bankStatementSubPositions = null;
+        bankStatementSubPositions = await client.GetFromJsonAsync<IEnumerable<BankStatementSubPosition>>(@$"api/bankStatementSubPosition/parent/{bankStatementPosition.BsP_Id}");
+        CheckAmountSum();
+        this.StateHasChanged();
+    }
     protected async Task RefreshData()
     {
         contractors = await client.GetFromJsonAsync<IEnumerable<Contractor>>("api/contractor");
@@ -196,14 +217,6 @@ else
         if (bankStatementHeader == null)
             bankStatementHeader = bankStatementHeaders.FirstOrDefault();
     }
-    void OnProgress(UploadProgressArgs args, string name)
-    {
-        if (args.Progress == 100)
-        {
-
-
-        }
-    }
     void BSHRowSelectionChanged(BankStatementHeader bsh)
     {
         bankStatementHeader = bsh;
@@ -211,10 +224,6 @@ else
         bspGrid.ExpandRow(null);
         this.StateHasChanged();
     }
-    //protected async Task OnChange(BankStatementPosition bsp, int? recommendedContractorId)
-    //{
-    //    await client.PutAsJsonAsync($"api/bankStatementPosition/setCtR/{recommendedContractorId}", bsp);
-    //}
     protected async Task BSSChange(BankStatementSubPosition bss)
     {
         await client.PutAsJsonAsync($"api/bankStatementSuBPosition", bss);
@@ -222,26 +231,15 @@ else
     protected async Task BSPChangeContractor(BankStatementPosition bsp, int? recommendedContractorId)
     {
         await client.PutAsJsonAsync($"api/bankStatementPosition/setCtR/{recommendedContractorId}", bsp);
-        CheckAmountSum();
     }
     protected async Task BSPChangeAccount(BankStatementPosition bsp, int? recommendedAccountId)
     {
         await client.PutAsJsonAsync($"api/bankStatementPosition/setAcC/{recommendedAccountId}", bsp);
-        CheckAmountSum();
-
     }
-    //void InsertRow(int bspid)
-    //{
-    //    BankStatementSubPosition bss = new BankStatementSubPosition() { BsS_Amount = 0, BsS_CATID = 1, BsS_BSPID = bspid };
-    //    bssGrid.InsertRow(bss);
-    //    client.PostAsJsonAsync("api/bankStatementSubPosition", bss);
-    //}
     async Task InsertRow()
     {
-
         BankStatementSubPosition bss = new BankStatementSubPosition() { BsS_Amount = 0, BsS_CATID = 1, BsS_BSPID = bankStatementPosition.BsP_Id };
         await client.PostAsJsonAsync("api/bankStatementSubPosition", bss);
-
         bankStatementSubPositions = null;
         bankStatementSubPositions = await client.GetFromJsonAsync<IEnumerable<BankStatementSubPosition>>(@$"api/bankStatementSubPosition/parent/{bankStatementPosition.BsP_Id}");
         CheckAmountSum();
@@ -273,12 +271,8 @@ else
     {
         sumWarningText = $"Suma elementów musi być równa {bankStatementPosition.BsP_Amount.ToString()} (aktualnie: {bankStatementSubPositions.Sum(x => x.BsS_Amount).ToString()}) ";
         if (bankStatementSubPositions.Sum(x => x.BsS_Amount) == bankStatementPosition.BsP_Amount)
-        {
             sumWarning = false;
-        }
         else
-        {
             sumWarning = true;
-        }
     }
 }

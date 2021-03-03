@@ -177,7 +177,7 @@ namespace HomeEnvironmentLifePlanner.Server.Migrations
                     b.Property<DateTime>("BsP_ImportDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<bool>("BsP_IsImported")
+                    b.Property<bool>("BsP_IsImportedToTransactions")
                         .HasColumnType("bit");
 
                     b.Property<int?>("BsP_RecommendedAccountId")
@@ -191,6 +191,9 @@ namespace HomeEnvironmentLifePlanner.Server.Migrations
 
                     b.Property<string>("BsP_TransactionType")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("Bsp_IsPreparedToImport")
+                        .HasColumnType("bit");
 
                     b.HasKey("BsP_Id");
 

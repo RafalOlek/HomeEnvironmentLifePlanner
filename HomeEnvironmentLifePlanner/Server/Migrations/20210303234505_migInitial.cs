@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace HomeEnvironmentLifePlanner.Server.Migrations
 {
-    public partial class mig1 : Migration
+    public partial class migInitial : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -356,7 +356,8 @@ namespace HomeEnvironmentLifePlanner.Server.Migrations
                     BsP_SenderReceiver = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     BsP_Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     BsP_TransactionType = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    BsP_IsImported = table.Column<bool>(type: "bit", nullable: false),
+                    BsP_IsImportedToTransactions = table.Column<bool>(type: "bit", nullable: false),
+                    Bsp_IsPreparedToImport = table.Column<bool>(type: "bit", nullable: false),
                     BsP_ImportDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     BsP_RecommendedContractorId = table.Column<int>(type: "int", nullable: true),
                     BsP_RecommendedAccountId = table.Column<int>(type: "int", nullable: true)
