@@ -50,9 +50,8 @@ namespace HomeEnvironmentLifePlanner.Server.Controllers
             return Ok(bankStatmentHeader);
         }
         [HttpPost("Create")]
-        public async Task<IActionResult> Single(IFormFile file)
+        public async Task<IActionResult> ImportBankStatement(IFormFile file)
         {
-
             try
             {
                 BankStatementPosition bsp;
@@ -112,7 +111,6 @@ namespace HomeEnvironmentLifePlanner.Server.Controllers
                                 bsh.BsH_DateTo = _context.BankStatementPositions.Where(x => x.BsP_BSHID == bsh.BsH_Id).Max(x => x.BsP_ExecutionDate);
                                 _context.Entry(bsh).State = EntityState.Modified;
                                 await _context.SaveChangesAsync();
-
                             } while (reader.NextResult());
                         }
                     }

@@ -59,6 +59,47 @@ namespace HomeEnvironmentLifePlanner.Server.Controllers
 
             return Ok(transaction.TrN_Id);
         }
+        [HttpPost("ImportFromBSH")]
+        public async Task<IActionResult> ImportFromBSH(BankStatementHeader bsh)
+        {
+            try
+            {
+
+                var bspList = _context.BankStatementPositions
+                    .Include(x => x.BankStatementSubPositions.Where(x => x.BankStatementPosition.BsP_Id == x.BsS_BSPID))
+                    .Where(x => x.BsP_BSHID == bsh.BsH_Id && !x.BsP_IsImportedToTransactions && x.Bsp_IsPreparedToImport);
+                foreach (var bsp in bspList)
+                {
+                    foreach (var bss in bsp.BankStatementSubPositions)
+                    {
+                        Transaction trn = new Transaction()
+                        {
+                            TrN_CTRID = (int)bsp.BsP_RecommendedContractorId,
+                            TrN_Amount = bss.BsS_Amount,
+                            TrN_CreateDate = DateTime.Now,
+                            TrN_CURID = bsp.BsP_CURID,
+                            TrN_BSPID = bsp.BsP_Id,
+                            TrN_Description = bsp.BsP_Description,
+                            TrN_ExecutionDate = bsp.BsP_ExecutionDate,
+                            TrN_PYTID = 1
+
+                        };
+                        _context.Add(trn);
+                    }
+                    bsp.BsP_IsImportedToTransactions = true;
+                    bsp.Bsp_IsPreparedToImport = false;
+                    _context.Entry(bsp).State = EntityState.Modified;
+                }
+                await _context.SaveChangesAsync();
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return Content(ex.Message);
+            }
+        }
+
         [HttpPut]
         public async Task<IActionResult> Put(Transaction transaction)
         {
@@ -70,7 +111,7 @@ namespace HomeEnvironmentLifePlanner.Server.Controllers
 
                 await _context.SaveChangesAsync();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
 
             }

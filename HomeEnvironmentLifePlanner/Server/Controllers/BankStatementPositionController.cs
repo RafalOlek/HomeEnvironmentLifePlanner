@@ -50,20 +50,9 @@ namespace HomeEnvironmentLifePlanner.Server.Controllers
                 return NoContent();
             }
         }
-        [HttpPut("setCtR/{recommendedContractorId}")]
-        public async Task<IActionResult> PutContractor(BankStatementPosition bsp, int recommendedContractorId)
+        [HttpPut]
+        public async Task<IActionResult> Put(BankStatementPosition bsp )
         {
-
-            bsp.BsP_RecommendedContractorId = recommendedContractorId;
-            _context.Entry(bsp).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
-            return Ok(bsp);
-        }
-        [HttpPut("setAcC/{recommendedAccountId}")]
-        public async Task<IActionResult> PutAccount(BankStatementPosition bsp, int recommendedAccountId)
-        {
-
-            bsp.BsP_RecommendedAccountId = recommendedAccountId;
             _context.Entry(bsp).State = EntityState.Modified;
             await _context.SaveChangesAsync();
             return Ok(bsp);
