@@ -24,4 +24,16 @@ namespace HomeEnvironmentLifePlanner.Shared.Models
         public Category Category1 { get; set; }
 
     }
+    public class CategoryType
+    {
+        [Key]
+        public int CtY_Id { get; set; }
+        public string CtY_Name { get; set; }
+        public int CtY_Value { get; set; }
+    }
+    public enum CategoryTypeValue
+    {
+        Credit = 1,
+        Debit = 2,
+    }
 }

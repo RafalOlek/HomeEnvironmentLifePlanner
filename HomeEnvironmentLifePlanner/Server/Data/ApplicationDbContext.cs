@@ -25,7 +25,8 @@ namespace HomeEnvironmentLifePlanner.Server.Data
         public DbSet<ContractorGroup> ContractorGroups { get; set; }
         public DbSet<Currency> Currencies { get; set; }
         public DbSet<PaymentType> PaymentTypes { get; set; }
-        public DbSet<Transaction> Transactions { get; set; }
+        public DbSet<TransactionHeader> TransactionHeaders { get; set; }
+        public DbSet<TransactionPosition> TransactionPositions { get; set; }
         public ApplicationDbContext(
             DbContextOptions options,
             IOptions<OperationalStoreOptions> operationalStoreOptions) : base(options, operationalStoreOptions)
@@ -47,7 +48,8 @@ namespace HomeEnvironmentLifePlanner.Server.Data
             builder.Entity<ContractorGroup>().ToTable("ContractorGroups");
             builder.Entity<Currency>().ToTable("Currencies");
             builder.Entity<PaymentType>().ToTable("PaymentTypes");
-            builder.Entity<Transaction>().ToTable("Transactions");
+            builder.Entity<TransactionHeader>().ToTable("TransactionHeaders");
+            builder.Entity<TransactionPosition>().ToTable("TransactionPositions");
 
 
             builder.Entity<Category>().HasOne(i => i.Category1).WithMany(i => i.CaT_Children).HasForeignKey(i => i.CaT_ParentId).HasPrincipalKey(i => i.CaT_Id).OnDelete(DeleteBehavior.Restrict);

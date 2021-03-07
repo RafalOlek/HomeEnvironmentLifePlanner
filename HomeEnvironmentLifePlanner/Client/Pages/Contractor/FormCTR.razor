@@ -10,7 +10,7 @@
     <DataAnnotationsValidator />
     <div class="row justify-content-center">
         <div class="col-md-8 ">
-            <RadzenFieldset Text="Kontrahent">
+            <RadzenFieldset Text="@headerText">
                 <div class="row">
                     <div class="col-md-2 align-items-center d-flex">
                         <RadzenLabel Text="Akronim" />
@@ -102,30 +102,34 @@
                     <br />
                 </div>
                 <br />
-                <div class="row">
-                    <div class="col-md-2 align-items-center d-flex">
-                        <RadzenLabel Text="Grupa" />
-                    </div>
-                    <div class="col-md-10">
-                        <RadzenDropDown AllowClear="false" Name="ctrCtgId" style="width: 100%;"
-                                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterOperator="StringFilterOperator.StartsWith" AllowFiltering="true"
-                                        Data=@contractorGroups TextProperty="CtG_Name" ValueProperty="CtG_Id" @bind-Value="@contractor.CtR_CTGID" />
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-2" />
-                    <div class="col-md-10 d-flex justify-content-center">
-                        <Radzen.Blazor.RadzenNumericRangeValidator Component="ctrCtgId" Min="1" Text="Należy wybrać grupę!" Popup=@popup Style="position: absolute" />
-                    </div>
-                    <br />
-                </div>
-                <div class="row">
-                    <div class="col-md-12 d-flex align-items-end justify-content-end" style="margin-top: 16px;">
-                        <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Secondary" Text="@Properties.Dictionary.sharedCancel" Click="@(x=> Cancel())" />
-                        <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Submit" ButtonStyle="ButtonStyle.Primary">@ButtonText </RadzenButton>
+                @if (ctgID == null)
+                {
+                    <div class="row">
+                        <div class="col-md-2 align-items-center d-flex">
+                            <RadzenLabel Text="Grupa" />
+                        </div>
+                        <div class="col-md-10">
+                            <RadzenDropDown AllowClear="false" Name="ctrCtgId" style="width: 100%;"
+                                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterOperator="StringFilterOperator.StartsWith" AllowFiltering="true"
+                                            Data=@contractorGroups TextProperty="CtG_Name" ValueProperty="CtG_Id" @bind-Value="@contractor.CtR_CTGID" />
+                        </div>
                     </div>
 
+                    <div class="row">
+                        <div class="col-md-2" />
+                        <div class="col-md-10 d-flex justify-content-center">
+                            <Radzen.Blazor.RadzenNumericRangeValidator Component="ctrCtgId" Min="1" Text="Należy wybrać grupę!" Popup=@popup Style="position: absolute" />
+                        </div>
+                        <br />
+                    </div>
+                }
+                <div class="row">
+                    <div class="col-md-12 d-flex align-items-end justify-content-end" style="margin-top: 16px;">
+                        <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Secondary" Text="@Properties.Dictionary.sharedCancel" Click="@(x => Cancel())" />
+                        <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Submit" ButtonStyle="ButtonStyle.Primary">@ButtonText </RadzenButton>
+                    </div>
                 </div>
+
 
             </RadzenFieldset>
         </div>
@@ -133,18 +137,19 @@
 
 </RadzenTemplateForm>
 @code {
-    [Parameter] public Contractor contractor { get; set; }
-    [Parameter] public string ButtonText { get; set; } = "Zapisz";
-    [Parameter] public EventCallback<Contractor> Submit { get; set; }
-    List<ContractorGroup> contractorGroups = new List<ContractorGroup>();
-    bool popup;
-
+        [Parameter] public Contractor contractor { get; set; }
+        [Parameter] public string ButtonText { get; set; } = "Zapisz";
+        [Parameter] public EventCallback<Contractor> Submit { get; set; }
+        [Parameter] public int? ctgID { get; set; }
+        List<ContractorGroup> contractorGroups = new List<ContractorGroup>();
+        bool popup;
+        string headerText = "";
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            contractorGroups = await client.GetFromJsonAsync<List<ContractorGroup>>("api/contractorGroup");
-
+            contractorGroups = await client.GetFromJsonAsync<List<ContractorGroup>>("api/contractor/groupList");
+            headerText = (ctgID == null ? "Kontrahent" : $"Dodaj nowego kontrahenta do grupy {contractorGroups.Where(x => x.CtG_Id == ctgID).FirstOrDefault().CtG_Name}");
         }
         catch (AccessTokenNotAvailableException exception)
         {
@@ -153,7 +158,6 @@
     }
     void Cancel()
     {
-
         navigatorManager.NavigateTo("contractor");
     }
 }

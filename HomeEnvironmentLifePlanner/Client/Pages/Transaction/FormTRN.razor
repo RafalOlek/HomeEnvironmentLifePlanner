@@ -3,19 +3,19 @@
 @inject HttpClient client
 @inject NavigationManager navigatorManager
 
-<RadzenTemplateForm Data="@transaction" Submit="@Submit">
+<RadzenTemplateForm Data="@transactionHeader" Submit="@Submit">
     <DataAnnotationsValidator />
     <div class="row justify-content-center">
         <div class="col-md-8 ">
             <RadzenFieldset Text="Transakcja">
-                <div class="row">
+                @*<div class="row">
                     <div class="col-md-2 align-items-center d-flex">
                         <RadzenLabel Text="Kwota" />
                     </div>
                     <div class="col-md-10">
-                        <InputNumber style="width: 100%;" @bind-Value="@transaction.TrN_Amount" Name="trnAmount" />
+                        <InputNumber style="width: 100%;" @bind-Value="@transactionHeader.TrH_Amount" Name="trnAmount" />
                     </div>
-                </div>
+                </div>*@
                 <div class="row">
                     <div class="col-md-2" />
                     <div class="col-md-10 d-flex justify-content-center">
@@ -30,7 +30,7 @@
                     <div class="col-md-10">
                         <RadzenDropDown AllowClear="false" Name="trnCurId" style="width: 100%;"
                                         FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterOperator="StringFilterOperator.StartsWith" AllowFiltering="true"
-                                        Data=@currencies TextProperty="CuR_Name" ValueProperty="CuR_Id" @bind-Value="@transaction.TrN_CURID" />
+                                        Data=@currencies TextProperty="CuR_Name" ValueProperty="CuR_Id" @bind-Value="@transactionHeader.TrH_CURID" />
                     </div>
                 </div>
                 <div class="row">
@@ -47,7 +47,7 @@
                     <div class="col-md-10">
                         <RadzenDropDown AllowClear="false" Name="trnCtrId" style="width: 100%;"
                                         FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterOperator="StringFilterOperator.StartsWith" AllowFiltering="true"
-                                        Data=@contractors TextProperty="CtR_Name" ValueProperty="CtR_Id" @bind-Value="@transaction.TrN_CTRID" />
+                                        Data=@contractors TextProperty="CtR_Name" ValueProperty="CtR_Id" @bind-Value="@transactionHeader.TrH_CTRID" />
                     </div>
                 </div>
                 <div class="row">
@@ -62,13 +62,13 @@
                         <RadzenLabel Text="Data przelewu" />
                     </div>
                     <div class="col-md-10">
-                        <InputDate style="width: 100%;" @bind-Value="@transaction.TrN_ExecutionDate" Name="trnExecutionDate" />
+                        <InputDate style="width: 100%;" @bind-Value="@transactionHeader.TrH_ExecutionDate" Name="trhExecutionDate" />
                     </div>
                 </div>
                 <div class="row">
                     <div class="col-md-2" />
                     <div class="col-md-10 d-flex justify-content-center">
-                        <RadzenRequiredValidator Component="trnExecutionDate" Text="Data przelewu jest wymagana!" Popup=@popup Style="position: absolute" />
+                        <RadzenRequiredValidator Component="trhExecutionDate" Text="Data przelewu jest wymagana!" Popup=@popup Style="position: absolute" />
                     </div>
                     <br />
                 </div>
@@ -79,7 +79,7 @@
                     <div class="col-md-10">
                         <RadzenDropDown AllowClear="false" Name="trnPytId" style="width: 100%;"
                                         FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterOperator="StringFilterOperator.StartsWith" AllowFiltering="true"
-                                        Data=@paymentTypes TextProperty="PyT_Name" ValueProperty="PyT_Id" @bind-Value="@transaction.TrN_PYTID" />
+                                        Data=@paymentTypes TextProperty="PyT_Name" ValueProperty="PyT_Id" @bind-Value="@transactionHeader.TrH_PYTID" />
                     </div>
                 </div>
                 <div class="row">
@@ -94,7 +94,7 @@
                         <RadzenLabel Text="Opis" />
                     </div>
                     <div class="col-md-10">
-                        <InputText style="width: 100%;" @bind-Value="@transaction.TrN_Description"  />
+                        <InputText style="width: 100%;" @bind-Value="@transactionHeader.TrH_Description"  />
                     </div>
                 </div>
                 <br/>
@@ -109,9 +109,9 @@
     </div>
 </RadzenTemplateForm>
 @code {
-    [Parameter] public Transaction transaction { get; set; }
+    [Parameter] public TransactionHeader transactionHeader { get; set; }
     [Parameter] public string ButtonText { get; set; } = "Zapisz";
-    [Parameter] public EventCallback<Transaction> Submit { get; set; }
+    [Parameter] public EventCallback<TransactionHeader> Submit { get; set; }
 
     List<Currency> currencies = new List<Currency>();
     List<Contractor> contractors = new List<Contractor>();

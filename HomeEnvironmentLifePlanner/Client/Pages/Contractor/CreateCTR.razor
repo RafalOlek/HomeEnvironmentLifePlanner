@@ -1,11 +1,15 @@
-﻿@page "/contractor/create"
+﻿@page "/contractor/createAndAssigntoGroup/{contractorGroupId:int}"
 @inject HttpClient http
 @inject NavigationManager uriHelper
-<FormCTR ButtonText="@Properties.Dictionary.sharedCreate" contractor="@contractor" Submit="@CreateContractor" />
+<FormCTR ButtonText="@Properties.Dictionary.sharedCreate" contractor="@contractor" Submit="@CreateContractor" ctgID="@contractorGroupId" />
 @code {
+    [Parameter] public int? contractorGroupId { get; set; }
+
     Contractor contractor = new Contractor();
     async Task CreateContractor()
     {
+        if (contractorGroupId != null)
+            contractor.CtR_CTGID = (int)contractorGroupId;
         await http.PostAsJsonAsync("api/contractor", contractor);
         uriHelper.NavigateTo("contractor");
     }

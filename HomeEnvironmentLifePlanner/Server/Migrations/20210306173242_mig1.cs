@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace HomeEnvironmentLifePlanner.Server.Migrations
 {
-    public partial class migInitial : Migration
+    public partial class mig1 : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -419,46 +419,76 @@ namespace HomeEnvironmentLifePlanner.Server.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Transactions",
+                name: "TransactionHeaders",
                 columns: table => new
                 {
-                    TrN_Id = table.Column<int>(type: "int", nullable: false)
+                    TrH_Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    TrN_PYTID = table.Column<int>(type: "int", nullable: false),
-                    TrN_BSPID = table.Column<int>(type: "int", nullable: true),
-                    TrN_Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    TrN_CTRID = table.Column<int>(type: "int", nullable: false),
-                    TrN_Amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    TrN_CURID = table.Column<int>(type: "int", nullable: false),
-                    TrN_CreateDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    TrN_ExecutionDate = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    TrH_PYTID = table.Column<int>(type: "int", nullable: false),
+                    TrH_BSPID = table.Column<int>(type: "int", nullable: true),
+                    TrH_Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    TrH_CTRID = table.Column<int>(type: "int", nullable: false),
+                    TrH_CURID = table.Column<int>(type: "int", nullable: false),
+                    TrH_CreateDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    TrH_ExecutionDate = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Transactions", x => x.TrN_Id);
+                    table.PrimaryKey("PK_TransactionHeaders", x => x.TrH_Id);
                     table.ForeignKey(
-                        name: "FK_Transactions_BankStatmentPositions_TrN_BSPID",
-                        column: x => x.TrN_BSPID,
+                        name: "FK_TransactionHeaders_BankStatmentPositions_TrH_BSPID",
+                        column: x => x.TrH_BSPID,
                         principalTable: "BankStatmentPositions",
                         principalColumn: "BsP_Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_Transactions_Contractors_TrN_CTRID",
-                        column: x => x.TrN_CTRID,
+                        name: "FK_TransactionHeaders_Contractors_TrH_CTRID",
+                        column: x => x.TrH_CTRID,
                         principalTable: "Contractors",
                         principalColumn: "CtR_Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Transactions_Currencies_TrN_CURID",
-                        column: x => x.TrN_CURID,
+                        name: "FK_TransactionHeaders_Currencies_TrH_CURID",
+                        column: x => x.TrH_CURID,
                         principalTable: "Currencies",
                         principalColumn: "CuR_Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Transactions_PaymentTypes_TrN_PYTID",
-                        column: x => x.TrN_PYTID,
+                        name: "FK_TransactionHeaders_PaymentTypes_TrH_PYTID",
+                        column: x => x.TrH_PYTID,
                         principalTable: "PaymentTypes",
                         principalColumn: "PyT_Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "TransactionPositions",
+                columns: table => new
+                {
+                    TrP_Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    TrP_TRHID = table.Column<int>(type: "int", nullable: false),
+                    TrP_Price = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    TrP_Amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    TrP_Quantity = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    TrP_PRDID = table.Column<int>(type: "int", nullable: true),
+                    TrP_Unit = table.Column<int>(type: "int", nullable: true),
+                    TrP_CATID = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TransactionPositions", x => x.TrP_Id);
+                    table.ForeignKey(
+                        name: "FK_TransactionPositions_Categories_TrP_CATID",
+                        column: x => x.TrP_CATID,
+                        principalTable: "Categories",
+                        principalColumn: "CaT_Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_TransactionPositions_TransactionHeaders_TrP_TRHID",
+                        column: x => x.TrP_TRHID,
+                        principalTable: "TransactionHeaders",
+                        principalColumn: "TrH_Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -657,24 +687,34 @@ namespace HomeEnvironmentLifePlanner.Server.Migrations
                 columns: new[] { "SubjectId", "SessionId", "Type" });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Transactions_TrN_BSPID",
-                table: "Transactions",
-                column: "TrN_BSPID");
+                name: "IX_TransactionHeaders_TrH_BSPID",
+                table: "TransactionHeaders",
+                column: "TrH_BSPID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Transactions_TrN_CTRID",
-                table: "Transactions",
-                column: "TrN_CTRID");
+                name: "IX_TransactionHeaders_TrH_CTRID",
+                table: "TransactionHeaders",
+                column: "TrH_CTRID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Transactions_TrN_CURID",
-                table: "Transactions",
-                column: "TrN_CURID");
+                name: "IX_TransactionHeaders_TrH_CURID",
+                table: "TransactionHeaders",
+                column: "TrH_CURID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Transactions_TrN_PYTID",
-                table: "Transactions",
-                column: "TrN_PYTID");
+                name: "IX_TransactionHeaders_TrH_PYTID",
+                table: "TransactionHeaders",
+                column: "TrH_PYTID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TransactionPositions_TrP_CATID",
+                table: "TransactionPositions",
+                column: "TrP_CATID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TransactionPositions_TrP_TRHID",
+                table: "TransactionPositions",
+                column: "TrP_TRHID");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
@@ -704,7 +744,7 @@ namespace HomeEnvironmentLifePlanner.Server.Migrations
                 name: "PersistedGrants");
 
             migrationBuilder.DropTable(
-                name: "Transactions");
+                name: "TransactionPositions");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
@@ -716,13 +756,16 @@ namespace HomeEnvironmentLifePlanner.Server.Migrations
                 name: "Categories");
 
             migrationBuilder.DropTable(
+                name: "TransactionHeaders");
+
+            migrationBuilder.DropTable(
+                name: "CategoryTypes");
+
+            migrationBuilder.DropTable(
                 name: "BankStatmentPositions");
 
             migrationBuilder.DropTable(
                 name: "PaymentTypes");
-
-            migrationBuilder.DropTable(
-                name: "CategoryTypes");
 
             migrationBuilder.DropTable(
                 name: "BankStatmentHeaders");

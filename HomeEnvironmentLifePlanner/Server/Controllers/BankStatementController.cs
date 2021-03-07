@@ -15,15 +15,15 @@ namespace HomeEnvironmentLifePlanner.Server.Controllers
     [DisableRequestSizeLimit]
     [Route("api/[controller]")]
     [ApiController]
-    public class BankStatementHeaderController : ControllerBase
+    public class BankStatementController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
-        public BankStatementHeaderController(ApplicationDbContext context)
+        public BankStatementController(ApplicationDbContext context)
         {
             this._context = context;
         }
-        [HttpGet]
-        public async Task<IActionResult> Get()
+        [HttpGet("headerList")]
+        public async Task<IActionResult> BSHGetList()
         {
             try
             {
@@ -40,8 +40,8 @@ namespace HomeEnvironmentLifePlanner.Server.Controllers
             }
             return null;
         }
-        [HttpGet("{id}")]
-        public async Task<IActionResult> Get(int id)
+        [HttpGet("header/{id}")]
+        public async Task<IActionResult> BSHGetSingle(int id)
         {
             var bankStatmentHeader = await _context.BankStatmentHeaders
                 .Include(x => x.BankStatementPositions.Where(x => x.BsP_BSHID == x.BankStatmentHeader.BsH_Id))
@@ -49,8 +49,23 @@ namespace HomeEnvironmentLifePlanner.Server.Controllers
                 .FirstOrDefaultAsync(a => a.BsH_Id == id);
             return Ok(bankStatmentHeader);
         }
-        [HttpPost("Create")]
-        public async Task<IActionResult> ImportBankStatement(IFormFile file)
+        [HttpGet("header/getChildren/{bshid}")]
+        public async Task<IActionResult> BSHGetChildren(int bshId)
+        {
+            try
+            {
+                var bankStatmentPositions = await _context.BankStatementPositions
+                        .Include(x => x.BankStatementSubPositions.Where(x => x.BankStatementPosition.BsP_Id == x.BsS_BSPID))
+                      .Where(a => a.BsP_BSHID == bshId).ToListAsync();
+                return Ok(bankStatmentPositions);
+            }
+            catch (Exception ex)
+            {
+                return NoContent();
+            }
+        }
+        [HttpPost("header/import")]
+        public async Task<IActionResult> BSHImportBankStatement(IFormFile file)
         {
             try
             {
@@ -123,8 +138,8 @@ namespace HomeEnvironmentLifePlanner.Server.Controllers
             }
 
         }
-        [HttpPut]
-        public async Task<IActionResult> Put(BankStatementHeader bankStatmentHeader)
+        [HttpPut("header/refill")]
+        public async Task<IActionResult> BSHPut(BankStatementHeader bankStatmentHeader)
         {
             var bsp = _context.BankStatementPositions.Where(x => x.BsP_BSHID == bankStatmentHeader.BsH_Id && x.BsP_RecommendedContractorId == null).ToList();
             foreach (var item in bsp)
@@ -139,16 +154,14 @@ namespace HomeEnvironmentLifePlanner.Server.Controllers
             await _context.SaveChangesAsync();
             return NoContent();
         }
-
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id)
+        [HttpDelete("header/{id}")]
+        public async Task<IActionResult> BSHDelete(int id)
         {
             var bankStatmentHeader = new BankStatementHeader { BsH_Id = id };
             _context.Remove(bankStatmentHeader);
             await _context.SaveChangesAsync();
             return NoContent();
         }
-
         public int? ContractorSeeker(string BsP_Description)
         {
             if (_context.Contractors.Where(x => BsP_Description.Contains(x.CtR_ReferenceNumber)).Any())
@@ -158,6 +171,73 @@ namespace HomeEnvironmentLifePlanner.Server.Controllers
 
         }
 
+
+        [HttpGet("positionList")]
+        public async Task<IActionResult> BSPGetList()
+        {
+            var bankStatmentPositions = await _context.BankStatementPositions
+                 .Include(x => x.BankStatementSubPositions.Where(x => x.BankStatementPosition.BsP_Id == x.BsS_BSPID))
+                 .ToListAsync();
+            return Ok(bankStatmentPositions);
+        }
+
+        [HttpGet("position/{id}")]
+        public async Task<IActionResult> BSPGetSingle(int id)
+        {
+            var bankStatmentPosition = await _context.BankStatementPositions
+                 .Include(x => x.BankStatementSubPositions.Where(x => x.BankStatementPosition.BsP_Id == x.BsS_BSPID))
+                 .FirstOrDefaultAsync(a => a.BsP_Id == id);
+            return Ok(bankStatmentPosition);
+        }
+        [HttpGet("position/getChildren/{bspid}")]
+        public async Task<IActionResult> BSPGetChildren(int bspId)
+        {
+            var bankStatmentSubPositions = await _context.BankStatementSubPositions.Where(a => a.BsS_BSPID == bspId).ToListAsync();
+            return Ok(bankStatmentSubPositions);
+        }
+        [HttpPut("position")]
+        public async Task<IActionResult> BSPPut(BankStatementPosition bsp)
+        {
+            _context.Entry(bsp).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+            return Ok(bsp);
+        }
+
+
+        [HttpGet("subpositionList")]
+        public async Task<IActionResult> BSSGetList()
+        {
+            var bankStatmentSubPositions = await _context.BankStatementSubPositions.ToListAsync();
+            return Ok(bankStatmentSubPositions);
+        }
+        [HttpGet("subposition/{id}")]
+        public async Task<IActionResult> BSSGetSingle(int id)
+        {
+            var bankStatmentSubPosition = await _context.BankStatementSubPositions.FirstOrDefaultAsync(a => a.BsS_Id == id);
+            return Ok(bankStatmentSubPosition);
+        }
+        [HttpPost("subposition")]
+        public async Task<IActionResult> BSSPost(BankStatementSubPosition bss)
+        {
+            _context.Add(bss);
+            await _context.SaveChangesAsync();
+            return Ok(bss);
+        }
+        [HttpPut("subposition")]
+        public async Task<IActionResult> BSSPut(BankStatementSubPosition bss)
+        {
+            _context.Entry(bss).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+            return NoContent();
+        }
+        [HttpDelete("subposition/{id}")]
+        public async Task<IActionResult> BSSDelete(int id)
+        {
+            var bss = new BankStatementSubPosition { BsS_Id = id };
+            _context.Remove(bss);
+            await _context.SaveChangesAsync();
+            return NoContent();
+        }
     }
 
 }

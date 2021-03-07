@@ -2,19 +2,19 @@
 @inject HttpClient http
 @inject NavigationManager uriHelper
 @inject NotificationService NotificationService
-<FormTRN ButtonText="@Properties.Dictionary.sharedSave" transaction="@transaction" Submit="@EditTransaction" />
+<FormTRN ButtonText="@Properties.Dictionary.sharedSave" transactionHeader="@transactionHeader" Submit="@EditTransaction" />
 @code {
     [Parameter] public int transactionId { get; set; }
-    Transaction transaction = new Transaction();
+    TransactionHeader transactionHeader = new TransactionHeader();
     protected async override Task OnParametersSetAsync()
     {
-        transaction = await http.GetFromJsonAsync<Transaction>($"api/transaction/{transactionId}");
+        transactionHeader = await http.GetFromJsonAsync<TransactionHeader>($"api/transaction/{transactionId}");
     }
     async Task EditTransaction()
     {
         try
         {
-            await http.PutAsJsonAsync("api/transaction", transaction);
+            await http.PutAsJsonAsync("api/transaction", transactionHeader);
             NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = Properties.Dictionary.sharedUpdateOk, Duration = 4000 });
         }
         catch (Exception ex)

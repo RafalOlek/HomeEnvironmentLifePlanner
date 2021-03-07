@@ -600,48 +600,82 @@ namespace HomeEnvironmentLifePlanner.Server.Migrations
                     b.ToTable("PaymentTypes");
                 });
 
-            modelBuilder.Entity("HomeEnvironmentLifePlanner.Shared.Models.Transaction", b =>
+            modelBuilder.Entity("HomeEnvironmentLifePlanner.Shared.Models.TransactionHeader", b =>
                 {
-                    b.Property<int>("TrN_Id")
+                    b.Property<int>("TrH_Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
                         .UseIdentityColumn();
 
-                    b.Property<decimal>("TrN_Amount")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int?>("TrN_BSPID")
+                    b.Property<int?>("TrH_BSPID")
                         .HasColumnType("int");
 
-                    b.Property<int>("TrN_CTRID")
+                    b.Property<int>("TrH_CTRID")
                         .HasColumnType("int");
 
-                    b.Property<int>("TrN_CURID")
+                    b.Property<int>("TrH_CURID")
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("TrN_CreateDate")
+                    b.Property<DateTime>("TrH_CreateDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("TrN_Description")
+                    b.Property<string>("TrH_Description")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime>("TrN_ExecutionDate")
+                    b.Property<DateTime>("TrH_ExecutionDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("TrN_PYTID")
+                    b.Property<int>("TrH_PYTID")
                         .HasColumnType("int");
 
-                    b.HasKey("TrN_Id");
+                    b.HasKey("TrH_Id");
 
-                    b.HasIndex("TrN_BSPID");
+                    b.HasIndex("TrH_BSPID");
 
-                    b.HasIndex("TrN_CTRID");
+                    b.HasIndex("TrH_CTRID");
 
-                    b.HasIndex("TrN_CURID");
+                    b.HasIndex("TrH_CURID");
 
-                    b.HasIndex("TrN_PYTID");
+                    b.HasIndex("TrH_PYTID");
 
-                    b.ToTable("Transactions");
+                    b.ToTable("TransactionHeaders");
+                });
+
+            modelBuilder.Entity("HomeEnvironmentLifePlanner.Shared.Models.TransactionPosition", b =>
+                {
+                    b.Property<int>("TrP_Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .UseIdentityColumn();
+
+                    b.Property<decimal>("TrP_Amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("TrP_CATID")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("TrP_PRDID")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("TrP_Price")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("TrP_Quantity")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("TrP_TRHID")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("TrP_Unit")
+                        .HasColumnType("int");
+
+                    b.HasKey("TrP_Id");
+
+                    b.HasIndex("TrP_CATID");
+
+                    b.HasIndex("TrP_TRHID");
+
+                    b.ToTable("TransactionPositions");
                 });
 
             modelBuilder.Entity("IdentityServer4.EntityFramework.Entities.DeviceFlowCodes", b =>
@@ -980,27 +1014,27 @@ namespace HomeEnvironmentLifePlanner.Server.Migrations
                     b.Navigation("Account");
                 });
 
-            modelBuilder.Entity("HomeEnvironmentLifePlanner.Shared.Models.Transaction", b =>
+            modelBuilder.Entity("HomeEnvironmentLifePlanner.Shared.Models.TransactionHeader", b =>
                 {
                     b.HasOne("HomeEnvironmentLifePlanner.Shared.Models.BankStatementPosition", "BankStatmentPosition")
                         .WithMany()
-                        .HasForeignKey("TrN_BSPID");
+                        .HasForeignKey("TrH_BSPID");
 
                     b.HasOne("HomeEnvironmentLifePlanner.Shared.Models.Contractor", "Contractor")
                         .WithMany()
-                        .HasForeignKey("TrN_CTRID")
+                        .HasForeignKey("TrH_CTRID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("HomeEnvironmentLifePlanner.Shared.Models.Currency", "Currency")
                         .WithMany()
-                        .HasForeignKey("TrN_CURID")
+                        .HasForeignKey("TrH_CURID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("HomeEnvironmentLifePlanner.Shared.Models.PaymentType", "PaymentType")
                         .WithMany()
-                        .HasForeignKey("TrN_PYTID")
+                        .HasForeignKey("TrH_PYTID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -1011,6 +1045,25 @@ namespace HomeEnvironmentLifePlanner.Server.Migrations
                     b.Navigation("Currency");
 
                     b.Navigation("PaymentType");
+                });
+
+            modelBuilder.Entity("HomeEnvironmentLifePlanner.Shared.Models.TransactionPosition", b =>
+                {
+                    b.HasOne("HomeEnvironmentLifePlanner.Shared.Models.Category", "Category")
+                        .WithMany()
+                        .HasForeignKey("TrP_CATID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("HomeEnvironmentLifePlanner.Shared.Models.TransactionHeader", "TransactionHeader")
+                        .WithMany("TransactionPositions")
+                        .HasForeignKey("TrP_TRHID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Category");
+
+                    b.Navigation("TransactionHeader");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -1082,6 +1135,11 @@ namespace HomeEnvironmentLifePlanner.Server.Migrations
             modelBuilder.Entity("HomeEnvironmentLifePlanner.Shared.Models.ContractorGroup", b =>
                 {
                     b.Navigation("CtG_Children");
+                });
+
+            modelBuilder.Entity("HomeEnvironmentLifePlanner.Shared.Models.TransactionHeader", b =>
+                {
+                    b.Navigation("TransactionPositions");
                 });
 #pragma warning restore 612, 618
         }

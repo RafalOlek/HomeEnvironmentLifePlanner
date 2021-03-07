@@ -4,31 +4,51 @@
 @using HomeEnvironmentLifePlanner.Shared.Models
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication
 @inject NavigationManager navigatorManager
-<h2><RadzenIcon Icon="person" /> Kontrahenci</h2>
-<RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Primary" Click="@(x=> navigatorManager.NavigateTo($"contractor/create"))" Icon="add_box" />
-<br>
-@if (contractors == null)
+@inject NotificationService NotificationService
+
+<h2><RadzenIcon Icon="people" />Kontrahenci</h2>
+
+@if (contractorGroups == null)
 {
     <text>@HomeEnvironmentLifePlanner.Client.Properties.Dictionary.sharedLoading</text>
 }
-else if (contractors.Length == 0)
+else if (contractorGroups.Count() == 0)
 {
     <text>@HomeEnvironmentLifePlanner.Client.Properties.Dictionary.sharedNoRecords</text>
 }
 else
 {
+<RadzenCard Style="height:100%">
+    <div class="row">
+        <div class="col-md-6">
+            <RadzenTree Change=@OnChange Data=@contractorGroups.Where(x=>x.CtG_ParentId==null) Expand=@OnLoad Style="width: 100%;">
+                <RadzenTreeLevel TextProperty="CtG_Name" Expanded="(x) =>true" />
+            </RadzenTree>
+        </div>
+        <div class="col-md-6">
+            <RadzenCard>
+                <div style="margin-top:20px">Nazwa grupy kontrahentów: <b>@contractorGroups.Where(x => x.CtG_Id == ctgParentId).FirstOrDefault().CtG_Name</b></div>
+                <div>ID:<b>@contractorGroups.Where(x => x.CtG_Id == ctgParentId).FirstOrDefault().CtG_Id</b></div>
+                <br />
+                <div>
+                    <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Primary" Click="@(x=> navigatorManager.NavigateTo($"contractor/group/edit/{ctgParentId}"))" Icon="create" />
+                    <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Danger" Click="@(accountId=>Delete(ctgParentId) )" Icon="delete" />
+                    <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Primary" Click="@(x=> navigatorManager.NavigateTo($"contractor/group/create/{ctgParentId}"))" Icon="group_add" />
+                    <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Primary" Click="@(x=> navigatorManager.NavigateTo($"contractor/createAndAssigntoGroup/{ctgParentId}"))" Icon="person_add" />
 
-    <RadzenGrid Data="@contractors" AllowFiltering="true" AllowPaging="true" AllowSorting="true" TItem="Contractor" >
+                </div>
+            </RadzenCard>
+        </div>
+    </div>
+    <RadzenGrid Data="@contractors" AllowFiltering="true" AllowPaging="true" AllowSorting="true" TItem="Contractor">
         <Columns>
-            <RadzenGridColumn TItem="Contractor" Property="CtR_Id" Title="ID" Width="60px"/>
-            <RadzenGridColumn TItem="Contractor" Property="CtR_Acronym" Title="Akronim" Width="160px"/>
-
+            <RadzenGridColumn TItem="Contractor" Property="CtR_Id" Title="ID" Width="60px" />
+            <RadzenGridColumn TItem="Contractor" Property="CtR_Acronym" Title="Akronim" Width="160px" />
             <RadzenGridColumn TItem="Contractor" Property="CtR_Name" Title="Nazwa" Width="200px" />
-            <RadzenGridColumn TItem="Contractor" Property="CtR_ReferenceNumber" Title="Numer referencyjny"Width="200px" />
-            <RadzenGridColumn TItem="Contractor" Property="CtR_Country" Title="Kraj"Width="40px" />
-            <RadzenGridColumn TItem="Contractor" Property="CtR_City" Title="Miasto"Width="80px" />
-            <RadzenGridColumn TItem="Contractor" Property="CtR_Street" Title="Ulica" Width="120px"/>
-            <RadzenGridColumn TItem="Contractor" Property="ContractorGroup.CtG_Name" Title="Grupa" Width="160px" />
+            <RadzenGridColumn TItem="Contractor" Property="CtR_ReferenceNumber" Title="Numer referencyjny" Width="200px" />
+            <RadzenGridColumn TItem="Contractor" Property="CtR_Country" Title="Kraj" Width="40px" />
+            <RadzenGridColumn TItem="Contractor" Property="CtR_City" Title="Miasto" Width="80px" />
+            <RadzenGridColumn TItem="Contractor" Property="CtR_Street" Title="Ulica" Width="120px" />
             <RadzenGridColumn TItem="Contractor" Context="contractor" Title="Akcje" Width="120px">
                 <Template Context="contractor">
                     <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Primary" Click="@(x=> navigatorManager.NavigateTo($"contractor/edit/{contractor.CtR_Id}"))" Icon="create" />
@@ -37,29 +57,61 @@ else
             </RadzenGridColumn>
         </Columns>
     </RadzenGrid>
+</RadzenCard>
+
 }
-@code {
-    Contractor[] contractors { get; set; }
+@code 
+{
+    IEnumerable<ContractorGroup> contractorGroups { get; set; }
+    IEnumerable<Contractor> contractors { get; set; }
+    int? ctgParentId = 1;
     protected override async Task OnInitializedAsync()
     {
-        contractors = await client.GetFromJsonAsync<Contractor[]>("api/contractor");
         try
         {
-            contractors = await client.GetFromJsonAsync<Contractor[]>("api/contractor");
-
+            ctgParentId = 1;
+            contractorGroups = await client.GetFromJsonAsync<ContractorGroup[]>("api/contractor/groupList");
         }
         catch (AccessTokenNotAvailableException exception)
         {
             exception.Redirect();
         }
     }
-    async Task Delete(int contractorId)
+
+    async Task Delete(int? contractorGroupId)
     {
-        var ctr = contractors.First(x => x.CtR_Id == contractorId);
-        if (await js.InvokeAsync<bool>("confirm", $"{HomeEnvironmentLifePlanner.Client.Properties.Dictionary.sharedDeleteConfimation} {ctr.CtR_Name}'s ({ctr.CtR_Id})?"))
+        var ctg = contractorGroups.First(x => x.CtG_Id == contractorGroupId);
+        if (await js.InvokeAsync<bool>("confirm", $"{HomeEnvironmentLifePlanner.Client.Properties.Dictionary.sharedDeleteConfimation} {ctg.CtG_Name}'s ({ctg.CtG_Id})?"))
         {
-            await client.DeleteAsync($"api/contractor/{contractorId}");
-            await OnInitializedAsync();
+            if (contractorGroups.Where(x => x.CtG_ParentId == contractorGroupId).Any())
+                NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Błąd!", Detail = Properties.Dictionary.sharedDeleteExistsChild, Duration = 4000 });
+            else if (contractorGroupId == 1)
+                NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Błąd!", Detail = Properties.Dictionary.sharedDeleteHeadParent, Duration = 4000 });
+            else
+            {
+                await client.DeleteAsync($"api/contractor/group/{contractorGroupId}");
+                NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "", Detail = Properties.Dictionary.sharedDeleteOk, Duration = 4000 });
+                contractorGroups = null;
+                this.StateHasChanged();
+                await OnInitializedAsync();
+            }
         }
     }
+    async Task OnChange(TreeEventArgs args)
+    {
+        if (args.Value is ContractorGroup contractorGroup)
+        {
+            ctgParentId = contractorGroup.CtG_Id;
+            contractors = await client.GetFromJsonAsync<IEnumerable<Contractor>>($"api/contractor/group/getAssignedContractors/{contractorGroup.CtG_Id}");
+        }
+    }
+    void OnLoad(TreeExpandEventArgs args)
+    {
+        var contractorGroup = args.Value as ContractorGroup;
+
+        args.Children.Data = contractorGroups.Where(x => x.CtG_ParentId == contractorGroup.CtG_Id);
+        args.Children.TextProperty = "CtG_Name";
+        args.Children.HasChildren = (x) => (contractorGroups.Where(x => x.CtG_ParentId == contractorGroup.CtG_Id).Any()) ? true : false;
+    }
+
 }

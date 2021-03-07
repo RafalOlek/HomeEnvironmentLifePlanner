@@ -1,4 +1,4 @@
-﻿@page "/bankStatementHeader"
+﻿@page "/bankStatement"
 @inject HttpClient client
 @inject IJSRuntime js
 @using HomeEnvironmentLifePlanner.Shared.Models
@@ -15,7 +15,7 @@
 }
 else if (bankStatementHeaders.Count() == 0)
 {
-    <RadzenUpload Url="api/BankStatementHeader/Create" Style="margin-bottom: 20px;" Accept=".xlsx,.xls" ChooseText="Wgraj wyciąg" />
+    <RadzenUpload Url="api/bankStatement/header/import" Style="margin-bottom: 20px;" Accept=".xlsx,.xls" ChooseText="Wgraj wyciąg" />
     <text>@Properties.Dictionary.sharedNoRecords</text>
 }
 else
@@ -45,7 +45,7 @@ else
             </RadzenGridColumn>
         </Columns>
     </RadzenGrid>
-    <RadzenUpload Url="api/BankStatementHeader/Create" Style="margin-bottom: 20px;" Accept=".xlsx,.xls" ChooseText="Wgraj wyciąg" />
+    <RadzenUpload Url="api/bankStatement/header/import" Style="margin-bottom: 20px;" Accept=".xlsx,.xls" ChooseText="Wgraj wyciąg" />
     <RadzenLabel Text="@(bankStatementPosition==null?"": bankStatementPosition.BsP_Id.ToString())" Style="color:red" />
     <RadzenGrid @ref="bspGrid" Data="@bankStatementPositions" AllowFiltering="true" AllowPaging="true" AllowSorting="true" TItem="BankStatementPosition" PageSize="100" ExpandMode="DataGridExpandMode.Single" Value="@bankStatementPosition" RowExpand="@(args => BSPRowExpand(args))" RowCollapse="@(args => BSPRowCollapse(args))" RowUpdate="@(args => BSPChange(args))">
         <Template Context="bsp">
@@ -154,11 +154,12 @@ else
             contractors = await client.GetFromJsonAsync<IEnumerable<Contractor>>("api/contractor");
             categories = await client.GetFromJsonAsync<IEnumerable<Category>>("api/category");
             accounts = await client.GetFromJsonAsync<IEnumerable<Account>>("api/account");
-            bankStatementHeaders = await client.GetFromJsonAsync<IEnumerable<BankStatementHeader>>("api/bankStatementHeader");
+            bankStatementHeaders = await client.GetFromJsonAsync<IEnumerable<BankStatementHeader>>("api/bankStatement/headerList");
             bankStatementHeaders = bankStatementHeaders.OrderByDescending(x => x.BsH_Id);
             if (bankStatementHeader == null)
                 bankStatementHeader = bankStatementHeaders.FirstOrDefault();
-            bankStatementPositions= await client.GetFromJsonAsync<IEnumerable<BankStatementPosition>>($"api/bankStatementPosition/parent/{bankStatementHeader.BsH_Id}");
+            if(bankStatementHeader !=null)
+                bankStatementPositions= await client.GetFromJsonAsync<IEnumerable<BankStatementPosition>>($"api/bankStatement/header/getChildren/{bankStatementHeader.BsH_Id}");
         }
         catch (AccessTokenNotAvailableException exception)
         {
@@ -169,7 +170,7 @@ else
     {
         try
         {
-            await client.PutAsJsonAsync("api/bankStatementHeader", bsh);
+            await client.PutAsJsonAsync("api/bankStatement/header/refill", bsh);
         }
         catch (Exception ex)
         {
@@ -183,7 +184,7 @@ else
         var bsh = bankStatementHeaders.First(x => x.BsH_Id == bankStatementHeaderId);
         if (await js.InvokeAsync<bool>("confirm", $"{HomeEnvironmentLifePlanner.Client.Properties.Dictionary.sharedDeleteConfimation} {bsh.BsH_Name}'s ({bsh.BsH_Id})?"))
         {
-            await client.DeleteAsync($"api/bankStatementHeader/{bankStatementHeaderId}");
+            await client.DeleteAsync($"api/bankStatement/header/{bankStatementHeaderId}");
             NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "", Detail = Properties.Dictionary.sharedDeleteOk, Duration = 4000 });
             bankStatementHeaders = null;
             bankStatementPositions = null;
@@ -194,7 +195,7 @@ else
     async Task BSHRowSelectionChanged(BankStatementHeader bsh)
     {
         bankStatementHeader = bsh;
-        bankStatementPositions = await client.GetFromJsonAsync<IEnumerable<BankStatementPosition>>($"api/bankStatementPosition/parent/{bankStatementHeader.BsH_Id}");
+        bankStatementPositions = await client.GetFromJsonAsync<IEnumerable<BankStatementPosition>>($"api/bankStatement/header/getChildren/{bankStatementHeader.BsH_Id}");
         bankStatementPosition = null;
         bspGrid.ExpandRow(null);
         this.StateHasChanged();
@@ -205,13 +206,13 @@ else
         {
             await client.PostAsJsonAsync($"api/transaction/ImportFromBSH",bsh);
             NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "", Detail = "Pomyślnie zaksiegowano wybrane pozycje", Duration = 4000 });
-            bankStatementPositions = await client.GetFromJsonAsync<IEnumerable<BankStatementPosition>>($"api/bankStatementPosition/parent/{bsh.BsH_Id}");
+            bankStatementPositions = await client.GetFromJsonAsync<IEnumerable<BankStatementPosition>>($"api/bankStatement/header/getChildren/{bsh.BsH_Id}");
             this.StateHasChanged();
         }
     }
     async Task BSPChange(BankStatementPosition bsp)
     {
-        await client.PutAsJsonAsync($"api/bankStatementPosition", bsp);
+        await client.PutAsJsonAsync($"api/bankStatement/position", bsp);
         this.StateHasChanged();
 
     }
@@ -219,7 +220,7 @@ else
     {
         bankStatementPosition = bsp;
         bankStatementSubPositions = null;
-        bankStatementSubPositions = await client.GetFromJsonAsync<IEnumerable<BankStatementSubPosition>>(@$"api/bankStatementSubPosition/parent/{bankStatementPosition.BsP_Id}");
+        bankStatementSubPositions = await client.GetFromJsonAsync<IEnumerable<BankStatementSubPosition>>(@$"api/bankStatement/position/getChildren/{bankStatementPosition.BsP_Id}");
         CheckAmountSum();
         this.StateHasChanged();
     }
@@ -230,23 +231,25 @@ else
         sumWarning = false;
         this.StateHasChanged();
     }
-
     async Task BSSInsertRow()
     {
         BankStatementSubPosition bss = new BankStatementSubPosition() { BsS_Amount = 0, BsS_CATID = 1, BsS_BSPID = bankStatementPosition.BsP_Id };
-        await client.PostAsJsonAsync("api/bankStatementSubPosition", bss);
+        await client.PostAsJsonAsync("api/bankStatement/subposition", bss);
+        int bssCount = bankStatementSubPositions.Count();
         bankStatementSubPositions = null;
-        bankStatementSubPositions = await client.GetFromJsonAsync<IEnumerable<BankStatementSubPosition>>(@$"api/bankStatementSubPosition/parent/{bankStatementPosition.BsP_Id}");
-        if (bankStatementSubPositions.Count() > 1)
-            bankStatementPositions = await client.GetFromJsonAsync<IEnumerable<BankStatementPosition>>($"api/bankStatementPosition/parent/{bankStatementHeader.BsH_Id}");
+        bankStatementSubPositions = await client.GetFromJsonAsync<IEnumerable<BankStatementSubPosition>>(@$"api/bankStatement/position/getChildren/{bankStatementPosition.BsP_Id}");
+        if (bssCount <= 1)
+        {
+            bankStatementPositions = await client.GetFromJsonAsync<IEnumerable<BankStatementPosition>>($"api/bankStatement/header/getChildren/{bankStatementHeader.BsH_Id}");
+            await bspGrid.ExpandRow(bankStatementPositions.Where(x=>x.BsP_Id==bss.BsS_BSPID).FirstOrDefault());
+
+        }
         CheckAmountSum();
         this.StateHasChanged();
     }
     async Task BSSChange(BankStatementSubPosition bss)
     {
-        await client.PutAsJsonAsync($"api/bankStatementSuBPosition", bss);
-
-
+        await client.PutAsJsonAsync($"api/bankStatement/subposition", bss);
         CheckAmountSum();
         this.StateHasChanged();
     }
@@ -254,12 +257,16 @@ else
     {
         if (bankStatementSubPositions.Count() > 1)
         {
-            await client.DeleteAsync($"api/bankStatementSubPosition/{bankStatementSubPositionId}");
+            await client.DeleteAsync($"api/bankStatement/subposition/{bankStatementSubPositionId}");
             NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "", Detail = Properties.Dictionary.sharedDeleteOk, Duration = 4000 });
             bankStatementSubPositions = null;
-            bankStatementSubPositions = await client.GetFromJsonAsync<IEnumerable<BankStatementSubPosition>>(@$"api/bankStatementSubPosition/parent/{bankStatementPosition.BsP_Id}");
-            if (bankStatementSubPositions.Count() <=1)
-                bankStatementPositions = await client.GetFromJsonAsync<IEnumerable<BankStatementPosition>>($"api/bankStatementPosition/parent/{bankStatementHeader.BsH_Id}");
+            bankStatementSubPositions = await client.GetFromJsonAsync<IEnumerable<BankStatementSubPosition>>(@$"api/bankStatement/position/getChildren/{bankStatementPosition.BsP_Id}");
+            if (bankStatementSubPositions.Count() <= 1)
+            {
+                bankStatementPositions = await client.GetFromJsonAsync<IEnumerable<BankStatementPosition>>($"api/bankStatement/header/getChildren/{bankStatementHeader.BsH_Id}");
+                await bspGrid.ExpandRow(bankStatementPositions.Where(x => x.BsP_Id == bankStatementPosition.BsP_Id).FirstOrDefault());
+
+            }
             CheckAmountSum();
             await bspGrid.Reload();
             this.StateHasChanged();
@@ -269,7 +276,6 @@ else
             NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "", Detail = "Nie można usunąć wiersza - musi pozostać minimum jeden subelement dla danego elementu", Duration = 4000 });
         }
     }
-
     void CheckAmountSum()
     {
         sumWarningText = $"Suma elementów musi być równa {bankStatementPosition.BsP_Amount.ToString()} (aktualnie: {bankStatementSubPositions.Sum(x => x.BsS_Amount).ToString()}) ";
