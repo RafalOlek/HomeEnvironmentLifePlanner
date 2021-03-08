@@ -1,26 +1,28 @@
-﻿@page "/currency/edit/{currencyId:int}"
+﻿@page "/paymentType/edit/{paymentTypeId:int}"
 @inject HttpClient http
 @inject NavigationManager uriHelper
 @inject NotificationService NotificationService
-<FormCUR ButtonText="@Properties.Dictionary.sharedSave" currency="@currency" Submit="@EditCurrency" />
+<FormPTY ButtonText="@Properties.Dictionary.sharedSave" paymentType="@paymentType" Submit="@EditPaymentType" />
 @code {
-    [Parameter] public int currencyId { get; set; }
-    Currency currency = new Currency();
+    [Parameter] public int paymentTypeId { get; set; }
+    PaymentType paymentType = new PaymentType();
     protected async override Task OnParametersSetAsync()
     {
-        currency = await http.GetFromJsonAsync<Currency>($"api/currency/{currencyId}");
+        paymentType = await http.GetFromJsonAsync<PaymentType>($"api/config/paymentType/{paymentTypeId}");
     }
-    async Task EditCurrency()
+    async Task EditPaymentType()
     {
         try
         {
-            await http.PutAsJsonAsync("api/currency", currency);
+            await http.PutAsJsonAsync("api/config/paymentType", paymentType);
             NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = Properties.Dictionary.sharedUpdateOk, Duration = 4000 });
+
         }
-        catch (Exception ex)
+        catch(Exception ex)
         {
             NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Błąd!", Detail = ex.ToString(), Duration = 4000 });
+
         }
-        uriHelper.NavigateTo("currency");
+        uriHelper.NavigateTo("config");
     }
 }

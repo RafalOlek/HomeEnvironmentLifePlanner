@@ -51,7 +51,7 @@
     {
         try
         {
-            var currencies = await Http.GetFromJsonAsync<List<Currency>>("api/currency");
+            var currencies = await Http.GetFromJsonAsync<List<Currency>>("api/config/currencyList");
         }
         catch (AccessTokenNotAvailableException exception)
         {
@@ -60,6 +60,6 @@
     }
     void Cancel()
     {
-        navigatorManager.NavigateTo("currency");
+        navigatorManager.NavigateTo("config");
     }
 }

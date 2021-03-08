@@ -73,7 +73,7 @@ else
         {
             try
             {
-                var categoryTypes = await Http.GetFromJsonAsync<List<CategoryType>>("api/categoryType");
+                var categoryTypes = await Http.GetFromJsonAsync<List<CategoryType>>("api/config/categoryTypeList");
        
 
             }
@@ -86,6 +86,6 @@ else
         void Cancel()
         {
 
-            navigatorManager.NavigateTo("categoryType");
+            navigatorManager.NavigateTo("config");
         }
     }

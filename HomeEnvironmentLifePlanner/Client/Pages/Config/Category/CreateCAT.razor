@@ -11,7 +11,7 @@
     async Task CreateCategory()
     {
 
-        await http.PostAsJsonAsync($"api/category/{parentId}", category);
-        uriHelper.NavigateTo("category");
+        await http.PostAsJsonAsync($"api/config/category/{parentId}", category);
+        uriHelper.NavigateTo("config");
     }
 }

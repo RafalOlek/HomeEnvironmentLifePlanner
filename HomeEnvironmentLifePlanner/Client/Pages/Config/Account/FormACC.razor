@@ -67,7 +67,7 @@ else
     {
         try
         {
-            var accounts = await Http.GetFromJsonAsync<List<Account>>("api/account");
+            var accounts = await Http.GetFromJsonAsync<List<Account>>("api/config/accountList");
 
         }
         catch (AccessTokenNotAvailableException exception)
@@ -78,7 +78,7 @@ else
     void Cancel()
     {
 
-        navigatorManager.NavigateTo("account");
+        navigatorManager.NavigateTo("config");
     }
 
 

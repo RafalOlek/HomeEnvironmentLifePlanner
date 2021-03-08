@@ -1,0 +1,235 @@
+﻿@page "/config"
+@inject HttpClient client
+@inject IJSRuntime js
+@using HomeEnvironmentLifePlanner.Shared.Models
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@inject NavigationManager navigatorManager
+@inject NotificationService NotificationService
+@inject DialogService dialogService
+<RadzenTabs style="height: 880px" >
+    <Tabs>
+        <RadzenTabsItem Text="Konta">            
+            <RadzenGrid Data="@accounts" AllowFiltering="true" AllowPaging="true" AllowSorting="true" TItem="HomeEnvironmentLifePlanner.Shared.Models.Account" ColumnWidth="200px">
+                <Columns>
+                    <RadzenGridColumn TItem="HomeEnvironmentLifePlanner.Shared.Models.Account" Property="AcC_Id" Title="ID" />
+                    <RadzenGridColumn TItem="HomeEnvironmentLifePlanner.Shared.Models.Account" Property="AcC_Name" Title="Nazwa konta" />
+                    <RadzenGridColumn TItem="HomeEnvironmentLifePlanner.Shared.Models.Account" Property="AcC_ReferenceNumber" Title="Numer referencyjny" />
+                    <RadzenGridColumn TItem="HomeEnvironmentLifePlanner.Shared.Models.Account" Context="account" Title="Akcje">
+                        <Template Context="account">
+                            <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Primary" Click=@(args => ACCEdit(account.AcC_Id)) Icon="create" />
+                            <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Danger" Click="@(accountId => ACCDelete(account.AcC_Id) )" Icon="delete" />
+                        </Template>
+                    </RadzenGridColumn>
+                </Columns>
+            </RadzenGrid>
+        </RadzenTabsItem>
+        <RadzenTabsItem Text="Waluty">
+            <RadzenGrid Data="@currencies" AllowFiltering="true" AllowPaging="true" AllowSorting="true" TItem="HomeEnvironmentLifePlanner.Shared.Models.Currency" ColumnWidth="200px">
+                <Columns>
+                    <RadzenGridColumn TItem="HomeEnvironmentLifePlanner.Shared.Models.Currency" Property="CuR_Id" Title="ID" />
+                    <RadzenGridColumn TItem="HomeEnvironmentLifePlanner.Shared.Models.Currency" Property="CuR_Name" Title="Nazwa waluty" />
+                    <RadzenGridColumn TItem="HomeEnvironmentLifePlanner.Shared.Models.Currency" Context="currency" Title="Akcje">
+                        <Template Context="currency">
+                            <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Primary" Click=@(args => CUREdit(currency.CuR_Id))  Icon="create"/>
+                            <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Danger" Click="@(accountId => CURDelete(currency.CuR_Id))" Icon="delete" />
+                        </Template>
+                    </RadzenGridColumn>
+                </Columns>
+            </RadzenGrid>
+        </RadzenTabsItem>
+        <RadzenTabsItem Text="Typy płatności">
+            <RadzenGrid Data="@paymentTypes" AllowFiltering="true" AllowPaging="true" AllowSorting="true" TItem="HomeEnvironmentLifePlanner.Shared.Models.PaymentType" ColumnWidth="200px">
+                <Columns>
+                    <RadzenGridColumn TItem="HomeEnvironmentLifePlanner.Shared.Models.PaymentType" Property="PyT_Id" Title="ID" />
+                    <RadzenGridColumn TItem="HomeEnvironmentLifePlanner.Shared.Models.PaymentType" Property="PyT_Name" Title="Nazwa formy płatności" />
+                    <RadzenGridColumn TItem="HomeEnvironmentLifePlanner.Shared.Models.PaymentType" Property="PyT_ReferenceNumber" Title="Numer referencyjny" />
+                    <RadzenGridColumn TItem="HomeEnvironmentLifePlanner.Shared.Models.PaymentType" Property="Account.AcC_Name" Title="Przypisane konto" />
+                    <RadzenGridColumn TItem="HomeEnvironmentLifePlanner.Shared.Models.PaymentType" Context="paymentType" Title="Akcje">
+                        <Template Context="paymentType">
+                            <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Primary" Click=@(args =>PTYEdit(paymentType.PyT_Id) )  Icon="create" />
+                            <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Danger" Click="@(paymentTypeId => PTYDelete(paymentType.PyT_Id) )" Icon="delete" />
+                        </Template>
+                    </RadzenGridColumn>
+                </Columns>
+            </RadzenGrid>
+        </RadzenTabsItem>
+        <RadzenTabsItem Text="Kategorie">
+            <RadzenCard Style="height:100%">
+                <div class="row">
+                    <div class="col-md-6">
+                        <RadzenTree Change=@CATOnChange Data=@categories.Where(x => x.CaT_ParentId == null) Expand=@CATOnExpand Style="width: 100%;">
+                            <RadzenTreeLevel TextProperty="CaT_Name" Expanded="(x) => true" />
+                        </RadzenTree>
+                    </div>
+                    <div class="col-md-6">
+                        <RadzenCard >
+                            <div style="margin-top:20px">Nazwa Kategorii: <b>@categories.Where(x => x.CaT_Id == catParentId).FirstOrDefault().CaT_Name</b></div>
+                            <div>ID:<b>@categories.Where(x => x.CaT_Id == catParentId).FirstOrDefault().CaT_Id</b></div>
+                            <div style="margin-top:20px">Opis: <b>@categories.Where(x => x.CaT_Id == catParentId).FirstOrDefault().CaT_Description</b></div>
+                            <div style="margin-top:20px">Typ: <b>@categories.Where(x => x.CaT_Id == catParentId).FirstOrDefault().CategoryType.CtY_Name</b></div>
+                            <div style="margin-top:20px">Numer Referencyjny: <b>@categories.Where(x => x.CaT_Id == catParentId).FirstOrDefault().CaT_ReferenceNumber</b></div>
+                            <br />
+                            <div>
+                                <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Primary" Click=@(args => CATEdit(catParentId))   Icon="create" />
+                                <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Danger" Click="@(categoryId => CATDelete(catParentId))" Icon="delete" />
+                                <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Primary" Click="@(x => navigatorManager.NavigateTo($"category/create/{catParentId}"))" Icon="add_box" />
+                            </div>
+                        </RadzenCard>
+                    </div>
+                </div>
+            </RadzenCard>
+        </RadzenTabsItem>
+        <RadzenTabsItem Text="Typy kategorii">
+            <RadzenGrid Data="@categoryTypes" AllowFiltering="true" AllowPaging="true" AllowSorting="true" TItem="HomeEnvironmentLifePlanner.Shared.Models.CategoryType" ColumnWidth="200px">
+                <Columns>
+                    <RadzenGridColumn TItem="HomeEnvironmentLifePlanner.Shared.Models.CategoryType" Property="CtY_Id" Title="ID" />
+                    <RadzenGridColumn TItem="HomeEnvironmentLifePlanner.Shared.Models.CategoryType" Property="CtY_Name" Title="Nazwa typu kategorii" />
+                    <RadzenGridColumn TItem="HomeEnvironmentLifePlanner.Shared.Models.CategoryType" Property="CtY_Value" Title="Wartość kategorii" />
+                    <RadzenGridColumn TItem="HomeEnvironmentLifePlanner.Shared.Models.CategoryType" Context="categoryType" Title="Akcje">
+                        <Template Context="categoryType">
+                            <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Primary" Click=@(args => CTYEdit(categoryType.CtY_Id))  Icon="create" />
+                            <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Danger" Click="@(x => CTYDelete(categoryType.CtY_Id))" Icon="delete"/>
+                        </Template>
+                    </RadzenGridColumn>
+                </Columns>
+            </RadzenGrid>
+        </RadzenTabsItem>
+    </Tabs>
+</RadzenTabs>
+@code {
+    IEnumerable<HomeEnvironmentLifePlanner.Shared.Models.Currency> currencies { get; set; }
+    IEnumerable<HomeEnvironmentLifePlanner.Shared.Models.PaymentType> paymentTypes { get; set; }
+    IEnumerable<HomeEnvironmentLifePlanner.Shared.Models.Category> categories { get; set; }
+    IEnumerable<HomeEnvironmentLifePlanner.Shared.Models.CategoryType> categoryTypes { get; set; }
+    IEnumerable<HomeEnvironmentLifePlanner.Shared.Models.Account> accounts  { get; set; }
+    int? catParentId = 1;
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            currencies = await client.GetFromJsonAsync<IEnumerable<HomeEnvironmentLifePlanner.Shared.Models.Currency>>("api/config/currencyList");
+            paymentTypes = await client.GetFromJsonAsync<IEnumerable<HomeEnvironmentLifePlanner.Shared.Models.PaymentType>>("api/config/paymentTypeList");
+            categories = await client.GetFromJsonAsync<IEnumerable<HomeEnvironmentLifePlanner.Shared.Models.Category>>("api/config/categoryList");
+            categoryTypes = await client.GetFromJsonAsync<IEnumerable<HomeEnvironmentLifePlanner.Shared.Models.CategoryType>>("api/config/categoryTypeList");
+            accounts = await client.GetFromJsonAsync<IEnumerable<HomeEnvironmentLifePlanner.Shared.Models.Account>>("api/config/accountList");
+
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+        }
+
+    }
+    async Task CUREdit(int currencyId)
+    {
+
+        var result = await dialogService.OpenAsync<Currency.EditCUR>($"Waluta (id: {currencyId})", new Dictionary<string, object>() { { "currencyId", currencyId } }, new DialogOptions() { Width = "1000px", Height = "530px" });
+        await OnInitializedAsync();
+
+    }
+    async Task CURDelete(int currencyId)
+    {
+        var cur = currencies.First(x => x.CuR_Id == currencyId);
+        if (await js.InvokeAsync<bool>("confirm", $"{HomeEnvironmentLifePlanner.Client.Properties.Dictionary.sharedDeleteConfimation} {cur.CuR_Name}'s ({cur.CuR_Id})?"))
+        {
+            await client.DeleteAsync($"api/config/currency/{currencyId}");
+            await OnInitializedAsync();
+        }
+    }
+    async Task PTYEdit(int paymentTypeId)
+    {
+        var result = await dialogService.OpenAsync<PaymentType.EditPTY>($"Typ płatności (id: {paymentTypeId})", new Dictionary<string, object>() { { "paymentTypeId", paymentTypeId } }, new DialogOptions() { Width = "1000px", Height = "530px" });
+
+        await OnInitializedAsync();
+    }
+    async Task PTYDelete(int paymentTypeId)
+    {
+        var pyt = paymentTypes.First(x => x.PyT_Id == paymentTypeId);
+        if (await js.InvokeAsync<bool>("confirm", $"{HomeEnvironmentLifePlanner.Client.Properties.Dictionary.sharedDeleteConfimation} {pyt.PyT_Name}'s ({pyt.PyT_Id})?"))
+        {
+            await client.DeleteAsync($"api/paymentType/{paymentTypeId}");
+            await OnInitializedAsync();
+        }
+    }
+    async Task CATEdit(int? categoryId)
+    {
+        var result = await dialogService.OpenAsync<Category.EditCAT>($"Kategoria(id: {categoryId})", new Dictionary<string, object>() { { "categoryId", categoryId } }, new DialogOptions() { Width = "1000px", Height = "530px" });
+
+        categories = await client.GetFromJsonAsync<IEnumerable<HomeEnvironmentLifePlanner.Shared.Models.Category>>("api/config/categoryList");
+        await OnInitializedAsync();
+    }
+    async Task CATDelete(int? categoryId)
+    {
+        var cat = categories.First(x => x.CaT_Id == categoryId);
+        if (await js.InvokeAsync<bool>("confirm", $"{HomeEnvironmentLifePlanner.Client.Properties.Dictionary.sharedDeleteConfimation} {cat.CaT_Name}'s ({cat.CaT_Id})?"))
+        {
+            if (categories.Where(x => x.CaT_ParentId == categoryId).Any())
+                NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Błąd!", Detail = Properties.Dictionary.sharedDeleteExistsChild, Duration = 4000 });
+            else if (categoryId == 1)
+                NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Błąd!", Detail = Properties.Dictionary.sharedDeleteHeadParent, Duration = 4000 });
+            else
+            {
+                await client.DeleteAsync($"api/config/category/{categoryId}");
+                NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "", Detail = Properties.Dictionary.sharedDeleteOk, Duration = 4000 });
+                categories = null;
+                this.StateHasChanged();
+                await OnInitializedAsync();
+            }
+        }
+    }
+    void CATOnChange(TreeEventArgs args)
+    {
+        if (args.Value is HomeEnvironmentLifePlanner.Shared.Models.Category categoryx)
+        {
+
+            catParentId = categoryx.CaT_Id;
+
+        }
+    }
+   void CATOnExpand(TreeExpandEventArgs args)
+    {
+        var category = args.Value as HomeEnvironmentLifePlanner.Shared.Models.Category;
+        args.Children.Data = categories.Where(x => x.CaT_ParentId == category.CaT_Id);
+        args.Children.TextProperty = "CaT_Name";
+        args.Children.HasChildren = (x) => (categories.Where(x => x.CaT_ParentId == category.CaT_Id).Any()) ? true : false;
+    }
+    async Task CTYEdit(int categoryTypeId)
+    {
+        var result = await dialogService.OpenAsync<CategoryType.EditCTY>($"Typ kategorii (id: {categoryTypeId})", new Dictionary<string, object>() { { "categoryTypeId", categoryTypeId } }, new DialogOptions() { Width = "1000px", Height = "530px" });
+        await OnInitializedAsync();
+    }
+    async Task CTYDelete(int categoryTypeId)
+    {
+        var cty = categoryTypes.First(x => x.CtY_Id == categoryTypeId);
+        if (categories.Where(x => x.CaT_CTYID == categoryTypeId).Any())
+        {
+            await js.InvokeVoidAsync("alert", "Nie można usunąć typu - istnieje kategoria z tym typem!");
+
+        }
+        else
+        {
+            if (await js.InvokeAsync<bool>("confirm", $"{HomeEnvironmentLifePlanner.Client.Properties.Dictionary.sharedDeleteConfimation} {cty.CtY_Name}'s ({cty.CtY_Id})?"))
+            {
+                await client.DeleteAsync($"api/config/categoryType/{categoryTypeId}");
+                await OnInitializedAsync();
+            }
+        }
+    }
+    async Task ACCEdit(int accountId)
+    {
+
+        var result = await dialogService.OpenAsync<Account.EditACC>($"Konto (id: {accountId})", new Dictionary<string, object>() { { "accountId", accountId } }, new DialogOptions() { Width = "1000px", Height = "530px" });
+        await OnInitializedAsync();
+
+    }
+    async Task ACCDelete(int accountId)
+    {
+        var acc = accounts.First(x => x.AcC_Id == accountId);
+        if (await js.InvokeAsync<bool>("confirm", $"{HomeEnvironmentLifePlanner.Client.Properties.Dictionary.sharedDeleteConfimation} {acc.AcC_Name}'s ({acc.AcC_Id})?"))
+        {
+            await client.DeleteAsync($"api/config/account/{accountId}");
+            await OnInitializedAsync();
+        }
+    }
+
+}

@@ -7,7 +7,7 @@
     Account account = new Account();
     async Task CreateAccount()
     {
-        await http.PostAsJsonAsync("api/account", account);
-        uriHelper.NavigateTo("account");
+        await http.PostAsJsonAsync("api/config/account", account);
+        uriHelper.NavigateTo("config");
     }
 }

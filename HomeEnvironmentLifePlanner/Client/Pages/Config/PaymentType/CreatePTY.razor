@@ -7,7 +7,7 @@
     PaymentType paymentType = new PaymentType();
     async Task CreatePaymentType()
     {
-        await http.PostAsJsonAsync("api/paymentType", paymentType);
-        uriHelper.NavigateTo("paymentType");
+        await http.PostAsJsonAsync("api/config/paymentType", paymentType);
+        uriHelper.NavigateTo("config");
     }
 }

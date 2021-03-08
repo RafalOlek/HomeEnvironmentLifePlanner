@@ -7,8 +7,8 @@
         CategoryType categoryType = new CategoryType();
         async Task CreateCategoryType()
         {
-            await http.PostAsJsonAsync("api/categoryType", categoryType);
-            uriHelper.NavigateTo("categoryType");
+            await http.PostAsJsonAsync("api/config/categoryType", categoryType);
+            uriHelper.NavigateTo("config");
         }
     }
 

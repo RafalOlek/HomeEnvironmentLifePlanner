@@ -151,8 +151,8 @@ else
     {
         try
         {
-            contractors = await client.GetFromJsonAsync<IEnumerable<Contractor>>("api/contractor");
-            categories = await client.GetFromJsonAsync<IEnumerable<Category>>("api/category");
+            contractors = await client.GetFromJsonAsync<IEnumerable<Contractor>>("api/contractor/contractorList");
+            categories = await client.GetFromJsonAsync<IEnumerable<Category>>("api/config/categoryList");
             accounts = await client.GetFromJsonAsync<IEnumerable<Account>>("api/account");
             bankStatementHeaders = await client.GetFromJsonAsync<IEnumerable<BankStatementHeader>>("api/bankStatement/headerList");
             bankStatementHeaders = bankStatementHeaders.OrderByDescending(x => x.BsH_Id);

@@ -119,8 +119,8 @@ else
     {
         try
         {
-            categoryTypes = await client.GetFromJsonAsync<List<CategoryType>>("api/categoryType");
-            categories = await client.GetFromJsonAsync<List<Category>>("api/category");
+            categoryTypes = await client.GetFromJsonAsync<List<CategoryType>>("api/config/categoryTypeList");
+            categories = await client.GetFromJsonAsync<List<Category>>("api/config/categoryList");
 
         }
         catch (AccessTokenNotAvailableException exception)
@@ -131,6 +131,6 @@ else
     void Cancel()
     {
 
-        navigatorManager.NavigateTo("category");
+        navigatorManager.NavigateTo("config");
     }
 }

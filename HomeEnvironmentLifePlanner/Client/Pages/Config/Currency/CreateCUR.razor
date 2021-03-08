@@ -7,7 +7,7 @@
     Currency currency = new Currency();
     async Task CreateCurrency()
     {
-        await http.PostAsJsonAsync("api/currency", currency);
+        await http.PostAsJsonAsync("api/config/currency", currency);
         uriHelper.NavigateTo("currency");
     }
 }

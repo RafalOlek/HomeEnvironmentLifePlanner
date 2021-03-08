@@ -9,19 +9,19 @@
         Account account = new Account();
     protected async override Task OnParametersSetAsync()
     {
-        account = await http.GetFromJsonAsync<Account>($"api/account/{accountId}");
+        account = await http.GetFromJsonAsync<Account>($"api/config/account/{accountId}");
     }
     async Task EditAccount()
     {
         try
         {
-            await http.PutAsJsonAsync("api/account", account);
+            await http.PutAsJsonAsync("api/config/account", account);
             NotificationService.Notify(new NotificationMessage{ Severity = NotificationSeverity.Success, Summary = Properties.Dictionary.sharedUpdateOk, Duration = 4000 });
         }
         catch (Exception ex)
         {
             NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Błąd!" ,Detail=ex.ToString(), Duration = 4000 });
         }
-        uriHelper.NavigateTo("account");
+        uriHelper.NavigateTo("config");
     }
 }

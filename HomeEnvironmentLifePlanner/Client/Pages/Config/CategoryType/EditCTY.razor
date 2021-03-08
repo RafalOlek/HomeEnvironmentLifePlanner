@@ -1,28 +1,30 @@
-﻿@page "/paymentType/edit/{paymentTypeId:int}"
+﻿@page "/categoryType/edit/{categoryTypeId:int}"
 @inject HttpClient http
 @inject NavigationManager uriHelper
 @inject NotificationService NotificationService
-<FormPTY ButtonText="@Properties.Dictionary.sharedSave" paymentType="@paymentType" Submit="@EditPaymentType" />
+
+<h3>Edit</h3>
+<FormCTY ButtonText="@Properties.Dictionary.sharedSave" categoryType="@categoryType" Submit="@EditCategoryType" />
+
 @code {
-    [Parameter] public int paymentTypeId { get; set; }
-    PaymentType paymentType = new PaymentType();
+    [Parameter] public int categoryTypeId { get; set; }
+    CategoryType categoryType = new CategoryType();
     protected async override Task OnParametersSetAsync()
     {
-        paymentType = await http.GetFromJsonAsync<PaymentType>($"api/paymentType/{paymentTypeId}");
+        categoryType = await http.GetFromJsonAsync<CategoryType>($"api/config/categoryType/{categoryTypeId}");
     }
-    async Task EditPaymentType()
+    async Task EditCategoryType()
     {
         try
         {
-            await http.PutAsJsonAsync("api/paymentType", paymentType);
+            await http.PutAsJsonAsync("api/config/categoryType", categoryType);
             NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = Properties.Dictionary.sharedUpdateOk, Duration = 4000 });
-
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Błąd!", Detail = ex.ToString(), Duration = 4000 });
 
         }
-        uriHelper.NavigateTo("paymentType");
+        uriHelper.NavigateTo("config");
     }
 }
