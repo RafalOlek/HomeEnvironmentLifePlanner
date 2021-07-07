@@ -130,7 +130,7 @@
     <value>Czy na pewno chcesz usunąć</value>
   </data>
   <data name="sharedDeleteExistsChild" xml:space="preserve">
-    <value>Nie można usunąć elementu - istnieje conajmniej jeden elemnent podrzędnyw  hierarchi!</value>
+    <value>Nie można usunąć grupy- istnieje conajmniej jeden podrzędny element lub grupa!</value>
   </data>
   <data name="sharedDeleteHeadParent" xml:space="preserve">
     <value>Nie można usunąć głównej grupy</value>

@@ -14,7 +14,6 @@ namespace HomeEnvironmentLifePlanner.Shared.Models
         [Key]
         public int TrH_Id { get; set; }
         [RequiredGreaterThanZero(ErrorMessage ="Należy wybrać wartość")]
-        public int TrH_PYTID { get; set; }
         public int? TrH_BSPID { get; set; }
         public string TrH_Description { get; set; }
         [RequiredGreaterThanZero(ErrorMessage = "Należy wybrać wartość")]
@@ -31,25 +30,25 @@ namespace HomeEnvironmentLifePlanner.Shared.Models
         public virtual Contractor Contractor { get; set; }
         [ForeignKey("TrH_BSPID")]
         public virtual BankStatementPosition BankStatmentPosition { get; set; }
-        [ForeignKey("TrH_PYTID")]
-        public virtual PaymentType PaymentType { get; set; }
+ 
         public ICollection<TransactionPosition> TransactionPositions { get; set; }
     }
     public class TransactionPosition
     {
         [Key]
         public int TrP_Id { get; set; }
-
         public int TrP_TRHID { get; set; }
-
         public decimal? TrP_Price { get; set; }
         public decimal TrP_Amount { get; set;}
         public decimal? TrP_Quantity { get; set; }
         public int? TrP_PRDID { get; set; }
         public int? TrP_Unit { get; set; }
+        public int? TrP_BSSID { get; set; }
         [RequiredGreaterThanZero(ErrorMessage = "Należy wybrać wartość")]
-        public int TrP_CATID { get; set; }
+        public int? TrP_CATID { get; set; }
 
+        [ForeignKey("TrP_BSSID")]
+        public virtual BankStatementSubPosition BankStatementSubPosition { get; set; }
         [ForeignKey("TrP_CATID")]
         public virtual Category Category { get; set; }
         [ForeignKey("TrP_TRHID"),JsonIgnore]

@@ -163,6 +163,28 @@ namespace HomeEnvironmentLifePlanner.Server.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "ProductGroups",
+                columns: table => new
+                {
+                    PrG_Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    PrG_Code = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PrG_Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PrG_ParentId = table.Column<int>(type: "int", nullable: true),
+                    ProductGroup1PrG_Id = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ProductGroups", x => x.PrG_Id);
+                    table.ForeignKey(
+                        name: "FK_ProductGroups_ProductGroups_ProductGroup1PrG_Id",
+                        column: x => x.ProductGroup1PrG_Id,
+                        principalTable: "ProductGroups",
+                        principalColumn: "PrG_Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "PaymentTypes",
                 columns: table => new
                 {
@@ -344,6 +366,27 @@ namespace HomeEnvironmentLifePlanner.Server.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Products",
+                columns: table => new
+                {
+                    PrD_Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    PrD_Code = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PrD_Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PrD_PRGID = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Products", x => x.PrD_Id);
+                    table.ForeignKey(
+                        name: "FK_Products_ProductGroups_PrD_PRGID",
+                        column: x => x.PrD_PRGID,
+                        principalTable: "ProductGroups",
+                        principalColumn: "PrG_Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "BankStatmentPositions",
                 columns: table => new
                 {
@@ -392,6 +435,34 @@ namespace HomeEnvironmentLifePlanner.Server.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "ProductPrices",
+                columns: table => new
+                {
+                    PrP_Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    PrP_PRDID = table.Column<int>(type: "int", nullable: false),
+                    PrP_Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    PrP_CTRID = table.Column<int>(type: "int", nullable: false),
+                    PrP_Date = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ProductPrices", x => x.PrP_Id);
+                    table.ForeignKey(
+                        name: "FK_ProductPrices_Contractors_PrP_CTRID",
+                        column: x => x.PrP_CTRID,
+                        principalTable: "Contractors",
+                        principalColumn: "CtR_Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ProductPrices_Products_PrP_PRDID",
+                        column: x => x.PrP_PRDID,
+                        principalTable: "Products",
+                        principalColumn: "PrD_Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "BankStatmentSubPositions",
                 columns: table => new
                 {
@@ -424,7 +495,6 @@ namespace HomeEnvironmentLifePlanner.Server.Migrations
                 {
                     TrH_Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    TrH_PYTID = table.Column<int>(type: "int", nullable: false),
                     TrH_BSPID = table.Column<int>(type: "int", nullable: true),
                     TrH_Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     TrH_CTRID = table.Column<int>(type: "int", nullable: false),
@@ -453,12 +523,6 @@ namespace HomeEnvironmentLifePlanner.Server.Migrations
                         principalTable: "Currencies",
                         principalColumn: "CuR_Id",
                         onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_TransactionHeaders_PaymentTypes_TrH_PYTID",
-                        column: x => x.TrH_PYTID,
-                        principalTable: "PaymentTypes",
-                        principalColumn: "PyT_Id",
-                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -473,17 +537,24 @@ namespace HomeEnvironmentLifePlanner.Server.Migrations
                     TrP_Quantity = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
                     TrP_PRDID = table.Column<int>(type: "int", nullable: true),
                     TrP_Unit = table.Column<int>(type: "int", nullable: true),
-                    TrP_CATID = table.Column<int>(type: "int", nullable: false)
+                    TrP_BSSID = table.Column<int>(type: "int", nullable: true),
+                    TrP_CATID = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_TransactionPositions", x => x.TrP_Id);
                     table.ForeignKey(
+                        name: "FK_TransactionPositions_BankStatmentSubPositions_TrP_BSSID",
+                        column: x => x.TrP_BSSID,
+                        principalTable: "BankStatmentSubPositions",
+                        principalColumn: "BsS_Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
                         name: "FK_TransactionPositions_Categories_TrP_CATID",
                         column: x => x.TrP_CATID,
                         principalTable: "Categories",
                         principalColumn: "CaT_Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_TransactionPositions_TransactionHeaders_TrP_TRHID",
                         column: x => x.TrP_TRHID,
@@ -527,6 +598,11 @@ namespace HomeEnvironmentLifePlanner.Server.Migrations
                     { 2, "EUR" },
                     { 3, "GBP" }
                 });
+
+            migrationBuilder.InsertData(
+                table: "ProductGroups",
+                columns: new[] { "PrG_Id", "PrG_Code", "PrG_Name", "PrG_ParentId", "ProductGroup1PrG_Id" },
+                values: new object[] { 1, "GŁÓWNA", "Grupa Główna", null, null });
 
             migrationBuilder.InsertData(
                 table: "Categories",
@@ -687,6 +763,26 @@ namespace HomeEnvironmentLifePlanner.Server.Migrations
                 columns: new[] { "SubjectId", "SessionId", "Type" });
 
             migrationBuilder.CreateIndex(
+                name: "IX_ProductGroups_ProductGroup1PrG_Id",
+                table: "ProductGroups",
+                column: "ProductGroup1PrG_Id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ProductPrices_PrP_CTRID",
+                table: "ProductPrices",
+                column: "PrP_CTRID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ProductPrices_PrP_PRDID",
+                table: "ProductPrices",
+                column: "PrP_PRDID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Products_PrD_PRGID",
+                table: "Products",
+                column: "PrD_PRGID");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_TransactionHeaders_TrH_BSPID",
                 table: "TransactionHeaders",
                 column: "TrH_BSPID");
@@ -702,9 +798,9 @@ namespace HomeEnvironmentLifePlanner.Server.Migrations
                 column: "TrH_CURID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_TransactionHeaders_TrH_PYTID",
-                table: "TransactionHeaders",
-                column: "TrH_PYTID");
+                name: "IX_TransactionPositions_TrP_BSSID",
+                table: "TransactionPositions",
+                column: "TrP_BSSID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_TransactionPositions_TrP_CATID",
@@ -735,13 +831,16 @@ namespace HomeEnvironmentLifePlanner.Server.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
-                name: "BankStatmentSubPositions");
-
-            migrationBuilder.DropTable(
                 name: "DeviceCodes");
 
             migrationBuilder.DropTable(
+                name: "PaymentTypes");
+
+            migrationBuilder.DropTable(
                 name: "PersistedGrants");
+
+            migrationBuilder.DropTable(
+                name: "ProductPrices");
 
             migrationBuilder.DropTable(
                 name: "TransactionPositions");
@@ -753,19 +852,28 @@ namespace HomeEnvironmentLifePlanner.Server.Migrations
                 name: "AspNetUsers");
 
             migrationBuilder.DropTable(
-                name: "Categories");
+                name: "Products");
+
+            migrationBuilder.DropTable(
+                name: "BankStatmentSubPositions");
 
             migrationBuilder.DropTable(
                 name: "TransactionHeaders");
 
             migrationBuilder.DropTable(
-                name: "CategoryTypes");
+                name: "ProductGroups");
+
+            migrationBuilder.DropTable(
+                name: "Categories");
 
             migrationBuilder.DropTable(
                 name: "BankStatmentPositions");
 
             migrationBuilder.DropTable(
-                name: "PaymentTypes");
+                name: "CategoryTypes");
+
+            migrationBuilder.DropTable(
+                name: "Accounts");
 
             migrationBuilder.DropTable(
                 name: "BankStatmentHeaders");
@@ -775,9 +883,6 @@ namespace HomeEnvironmentLifePlanner.Server.Migrations
 
             migrationBuilder.DropTable(
                 name: "Currencies");
-
-            migrationBuilder.DropTable(
-                name: "Accounts");
 
             migrationBuilder.DropTable(
                 name: "ContractorGroups");

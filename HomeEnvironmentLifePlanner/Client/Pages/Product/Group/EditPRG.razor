@@ -1,0 +1,29 @@
+﻿@page "/product/group/edit/{productGroupId:int}"
+@inject HttpClient http
+@inject NavigationManager uriHelper
+@inject NotificationService NotificationService
+<h3>Edit</h3>
+<FormPRG ButtonText="@Properties.Dictionary.sharedSave" productGroup="@productGroup" Submit="@EditProductGroup" />
+@code {
+    [Parameter] public int productGroupId { get; set; }
+    ProductGroup productGroup = new ProductGroup();
+    protected async override Task OnParametersSetAsync()
+    {
+        productGroup = await http.GetFromJsonAsync<ProductGroup>($"api/product/group/{productGroupId}");
+    }
+    async Task EditProductGroup()
+    {
+        try
+        {
+            await http.PutAsJsonAsync("api/product/group", productGroup);
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = Properties.Dictionary.sharedUpdateOk, Duration = 4000 });
+        }
+        catch (Exception ex)
+        {
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Błąd!", Detail = ex.ToString(), Duration = 4000 });
+
+        }
+        uriHelper.NavigateTo("product");
+    }
+
+}

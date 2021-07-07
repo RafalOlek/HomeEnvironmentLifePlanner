@@ -1,0 +1,17 @@
+﻿@page "/product/createAndAssigntoGroup/{productGroupId:int}"
+@inject HttpClient http
+@inject NavigationManager uriHelper
+<FormPRD ButtonText="@Properties.Dictionary.sharedCreate" product="@product" Submit="@CreateProduct" prgID="@productGroupId" />
+@code {
+    [Parameter] public int? productGroupId { get; set; }
+
+    Product product = new Product();
+    async Task CreateProduct()
+    {
+        if (productGroupId != null)
+            product.PrD_PRGID = (int)productGroupId;
+        await http.PostAsJsonAsync("api/product", product);
+        uriHelper.NavigateTo("product");
+    }
+}
+

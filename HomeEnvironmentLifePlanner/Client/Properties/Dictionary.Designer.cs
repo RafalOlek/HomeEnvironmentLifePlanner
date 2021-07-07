@@ -97,7 +97,7 @@ namespace HomeEnvironmentLifePlanner.Client.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Nie można usunąć elementu - istnieje conajmniej jeden elemnent podrzędnyw  hierarchi!.
+        ///   Looks up a localized string similar to Nie można usunąć grupy- istnieje conajmniej jeden podrzędny element lub grupa!.
         /// </summary>
         public static string sharedDeleteExistsChild {
             get {

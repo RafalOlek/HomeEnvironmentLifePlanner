@@ -18,6 +18,8 @@ namespace HomeEnvironmentLifePlanner.Server.Data
         public DbSet<BankStatementHeader> BankStatmentHeaders { get; set; }
         public DbSet<BankStatementPosition> BankStatementPositions { get; set; }
         public DbSet<BankStatementSubPosition> BankStatementSubPositions{ get; set; }
+        public DbSet<ShoppingListHeader> ShoppingListHeaders { get; set; }
+        public DbSet<ShoppingListPosition> ShoppingListPositions { get; set; }
 
         public DbSet<Category> Categories { get; set; }
         public DbSet<CategoryType> CategoryTypes { get; set; }
@@ -27,6 +29,9 @@ namespace HomeEnvironmentLifePlanner.Server.Data
         public DbSet<PaymentType> PaymentTypes { get; set; }
         public DbSet<TransactionHeader> TransactionHeaders { get; set; }
         public DbSet<TransactionPosition> TransactionPositions { get; set; }
+        public DbSet<Product> Products { get; set; }
+        public DbSet<ProductGroup> ProductGroups { get; set; }
+        public DbSet<ProductPrice> ProductPrices { get; set; }
         public ApplicationDbContext(
             DbContextOptions options,
             IOptions<OperationalStoreOptions> operationalStoreOptions) : base(options, operationalStoreOptions)
@@ -41,6 +46,8 @@ namespace HomeEnvironmentLifePlanner.Server.Data
             builder.Entity<BankStatementHeader>().ToTable("BankStatmentHeaders");
             builder.Entity<BankStatementPosition>().ToTable("BankStatmentPositions");
             builder.Entity<BankStatementSubPosition>().ToTable("BankStatmentSubPositions");
+            builder.Entity<ShoppingListHeader>().ToTable("ShoppingListHeaders");
+            builder.Entity<ShoppingListPosition>().ToTable("ShoppingListPositions");
 
             builder.Entity<Category>().ToTable("Categories");
             builder.Entity<CategoryType>().ToTable("CategoryTypes");
@@ -51,14 +58,19 @@ namespace HomeEnvironmentLifePlanner.Server.Data
             builder.Entity<TransactionHeader>().ToTable("TransactionHeaders");
             builder.Entity<TransactionPosition>().ToTable("TransactionPositions");
 
-
+            builder.Entity<Product>().ToTable("Products");
+            builder.Entity<ProductGroup>().ToTable("ProductGroups");
+            builder.Entity<ProductPrice>().ToTable("ProductPrices");
             builder.Entity<Category>().HasOne(i => i.Category1).WithMany(i => i.CaT_Children).HasForeignKey(i => i.CaT_ParentId).HasPrincipalKey(i => i.CaT_Id).OnDelete(DeleteBehavior.Restrict);
             builder.Entity<ContractorGroup>().HasOne(i => i.ContractorGroup1).WithMany(i => i.CtG_Children).HasForeignKey(i => i.CtG_ParentId).HasPrincipalKey(i => i.CtG_Id).OnDelete(DeleteBehavior.Restrict);
+            builder.Entity<ProductGroup>().HasOne(i => i.ProductGroup1).WithMany(i => i.PrG_Children).HasForeignKey(i => i.PrG_ParentId).HasPrincipalKey(i => i.PrG_Id).OnDelete(DeleteBehavior.Restrict);
 
             //----------------------------init values-----------------------------------------------------
 
 
             builder.Entity<ContractorGroup>().HasData(new ContractorGroup { CtG_Id = 1, CtG_Name = "Grupa Główna", CtG_ParentId = null });
+            builder.Entity<ProductGroup>().HasData(new ProductGroup { PrG_Id = 1, PrG_Name = "Grupa Główna", PrG_ParentId = null ,PrG_Code="GŁÓWNA"});
+
             builder.Entity<Currency>().HasData(new Currency { CuR_Id = 1, CuR_Name = "PLN" }, new Currency { CuR_Id = 2, CuR_Name = "EUR" }, new Currency { CuR_Id = 3, CuR_Name = "GBP" });
             builder.Entity<Account>().HasData(
                 new Account { AcC_Id = 1, AcC_Name = "Gotówka_Rafał", AcC_ReferenceNumber = " " },

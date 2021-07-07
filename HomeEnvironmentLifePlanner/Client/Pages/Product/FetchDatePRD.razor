@@ -1,0 +1,150 @@
+﻿@page "/product"
+@inject HttpClient client
+@inject IJSRuntime js
+@using HomeEnvironmentLifePlanner.Shared.Models
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@inject NavigationManager navigatorManager
+@inject NotificationService NotificationService
+@inject DialogService dialogService
+
+
+<h2><RadzenIcon Icon="people" />Produkty</h2>
+
+@if (productGroups == null)
+{
+    <text>@HomeEnvironmentLifePlanner.Client.Properties.Dictionary.sharedLoading</text>
+}
+else if (productGroups.Count() == 0)
+{
+    <text>@HomeEnvironmentLifePlanner.Client.Properties.Dictionary.sharedNoRecords</text>
+}
+else
+{
+    <RadzenCard Style="height:100%">
+        <div class="row">
+            <div class="col-md-6">
+                <RadzenTree Change=@OnChange Data=@productGroups.Where(x=>x.PrG_ParentId==null) Expand=@OnLoad Style="width: 100%;">
+                    <RadzenTreeLevel TextProperty="PrG_Name" Expanded="(x) =>true" />
+                </RadzenTree>
+            </div>
+            <div class="col-md-6">
+                <RadzenCard>
+                    <div style="margin-top:20px">Nazwa grupy produktów: <b>@productGroups.Where(x => x.PrG_Id == prgParentId).FirstOrDefault().PrG_Name</b></div>
+                    <div>ID:<b>@productGroups.Where(x => x.PrG_Id == prgParentId).FirstOrDefault().PrG_Id</b></div>
+                    <br />
+                    <div>
+                        <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Primary" Click="@(args =>PRGEdit(prgParentId))" Icon="create" />
+                        <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Danger" Click="@(args=>PRGDelete(prgParentId) )" Icon="delete" />
+                        <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Primary" Click="@(args =>PRGCreate(prgParentId))" Icon="group_add" />
+                        <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Primary" Click="@(args =>PRDCreate())" Icon="person_add" />
+
+                    </div>
+                </RadzenCard>
+            </div>
+        </div>
+        <RadzenGrid Data="@products" AllowFiltering="true" AllowPaging="true" AllowSorting="true" TItem="Product">
+                <Columns>
+                    <RadzenGridColumn TItem="Product" Property="PrD_Id" Title="ID" Width="60px" />
+                    <RadzenGridColumn TItem="Product" Property="PrD_Code" Title="Kod" Width="160px" />
+                    <RadzenGridColumn TItem="Product" Property="PrD_Name" Title="Nazwa" Width="200px" />
+
+                    <RadzenGridColumn TItem="Product" Context="product" Title="Akcje" Width="120px">
+                        <Template Context="product">
+                            <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Primary" Click="@(x=> navigatorManager.NavigateTo($"product/edit/{product.PrD_Id}"))" Icon="create" />
+                            <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Danger" Click="@(contractorId=>PRDDelete(product.PrD_Id) )" Icon="delete" />
+                        </Template>
+                    </RadzenGridColumn>
+                </Columns>
+            </RadzenGrid>
+    </RadzenCard>
+}
+@code
+{
+    IEnumerable<ProductGroup> productGroups { get; set; }
+    IEnumerable<Product> products { get; set; }
+    int? prgParentId = 1;
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            prgParentId = 1;
+            productGroups = await client.GetFromJsonAsync<IEnumerable<ProductGroup>>("api/product/groupList");
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+        }
+    }
+
+    async Task OnChange(TreeEventArgs args)
+    {
+        if (args.Value is ProductGroup productGroup)
+        {
+            prgParentId = productGroup.PrG_Id;
+            products = await client.GetFromJsonAsync<IEnumerable<Product>>($"api/product/group/getAssignedProducts/{productGroup.PrG_Id}");
+        }
+    }
+    async Task OnLoad(TreeExpandEventArgs args)
+    {
+        var productGroup = args.Value as ProductGroup;
+
+        args.Children.Data = productGroups.Where(x => x.PrG_ParentId == productGroup.PrG_Id);
+        args.Children.TextProperty = "PrG_Name";
+        args.Children.HasChildren = (x) => (productGroups.Where(x => x.PrG_ParentId == productGroup.PrG_Id).Any()) ? true : false;
+        products = await client.GetFromJsonAsync<IEnumerable<Product>>($"api/product/group/getAssignedProducts/{productGroup.PrG_Id}");
+
+    }
+    async Task PRGEdit(int? productId)
+    {
+        var result = await dialogService.OpenAsync<HomeEnvironmentLifePlanner.Client.Pages.Product.Group.EditPRG>($"Grupa(id: {prgParentId})", new Dictionary<string, object>() { { "productGroupId", prgParentId } }, new DialogOptions() { Width = "1000px", Height = "530px" });
+        productGroups = await client.GetFromJsonAsync<IEnumerable<ProductGroup>>("api/product/groupList");
+
+
+    }
+    async Task PRGCreate(int? productId)
+    {
+        var result = await dialogService.OpenAsync<HomeEnvironmentLifePlanner.Client.Pages.Product.Group.CreatePRG>($"Nowa grupa", new Dictionary<string, object>() { { "parentId", prgParentId } }, new DialogOptions() { Width = "1000px", Height = "530px" });
+        productGroups = await client.GetFromJsonAsync<IEnumerable<ProductGroup>>("api/product/groupList");
+
+    }
+    async Task PRGDelete(int? productGroupId)
+    {
+        var prg = productGroups.First(x => x.PrG_Id == productGroupId);
+        if (await js.InvokeAsync<bool>("confirm", $"{HomeEnvironmentLifePlanner.Client.Properties.Dictionary.sharedDeleteConfimation} {prg.PrG_Code}'s ({prg.PrG_Id})?"))
+        {
+            if (productGroups.Where(x => x.PrG_ParentId == productGroupId).Any() || products.Where(x=>x.PrD_PRGID==productGroupId).Any())
+                NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Błąd!", Detail = Properties.Dictionary.sharedDeleteExistsChild, Duration = 4000 });
+            else if (productGroupId == 1)
+                NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Błąd!", Detail = Properties.Dictionary.sharedDeleteHeadParent, Duration = 4000 });
+            else
+            {
+                await client.DeleteAsync($"api/product/group/{productGroupId}");
+                NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "", Detail = Properties.Dictionary.sharedDeleteOk, Duration = 4000 });
+                productGroups = null;
+                this.StateHasChanged();
+                await OnInitializedAsync();
+            }
+        }
+    }
+    async Task PRDDelete(int? productId)
+    {
+        var prd = products.First(x => x.PrD_Id == productId);
+        if (await js.InvokeAsync<bool>("confirm", $"{HomeEnvironmentLifePlanner.Client.Properties.Dictionary.sharedDeleteConfimation} {prd.PrD_Code}'s ({prd.PrD_Id})?"))
+        {
+           
+                await client.DeleteAsync($"api/product/{productId}");
+                NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "", Detail = Properties.Dictionary.sharedDeleteOk, Duration = 4000 });
+                productGroups = null;
+                this.StateHasChanged();
+                await OnInitializedAsync();
+            
+        }
+    }
+    async Task PRDCreate()
+    {
+        var result = await dialogService.OpenAsync<CreatePRD>($"Nowy produkt", new Dictionary<string, object>() { { "productGroupId", prgParentId } }, new DialogOptions() { Width = "1000px", Height = "530px" });
+
+        products = await client.GetFromJsonAsync<IEnumerable<Product>>($"api/product/group/getAssignedProducts/{prgParentId}");
+    }
+
+}

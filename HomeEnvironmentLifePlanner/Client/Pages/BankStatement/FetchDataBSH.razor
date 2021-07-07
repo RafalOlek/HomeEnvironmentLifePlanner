@@ -36,10 +36,11 @@ else
                     @String.Format("{0:d}", bsh.BsH_DateTo)
                 </Template>
             </RadzenGridColumn>
-            <RadzenGridColumn TItem="BankStatementHeader" Context="bankStatementHeader" Title="Akcje" Width="160px">
+            <RadzenGridColumn TItem="BankStatementHeader" Context="bankStatementHeader" Title="Akcje" Width="240px">
                 <Template Context="bankStatementHeader">
                     <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Danger" Click="@(contractorId => BSHDelete(bankStatementHeader.BsH_Id) )" Icon="delete" />
                     <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Danger" Click="@(bsh => BSHRefillEmptyRecommendedContractor(bankStatementHeader) )" Icon="shuffle" />
+                    <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Danger" Click="@(bsh => BSHRefillCategory(bankStatementHeader) )" Icon="shuffle" />
                     <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Danger" Click="@(bsh => BSHImportToTransactions(bankStatementHeader) )" Icon="shuffle" />
                 </Template>
             </RadzenGridColumn>
@@ -153,7 +154,7 @@ else
         {
             contractors = await client.GetFromJsonAsync<IEnumerable<Contractor>>("api/contractor/contractorList");
             categories = await client.GetFromJsonAsync<IEnumerable<Category>>("api/config/categoryList");
-            accounts = await client.GetFromJsonAsync<IEnumerable<Account>>("api/account");
+            accounts = await client.GetFromJsonAsync<IEnumerable<Account>>("api/config/accountList");
             bankStatementHeaders = await client.GetFromJsonAsync<IEnumerable<BankStatementHeader>>("api/bankStatement/headerList");
             bankStatementHeaders = bankStatementHeaders.OrderByDescending(x => x.BsH_Id);
             if (bankStatementHeader == null)
@@ -170,7 +171,20 @@ else
     {
         try
         {
-            await client.PutAsJsonAsync("api/bankStatement/header/refill", bsh);
+            await client.PutAsJsonAsync("api/bankStatement/header/refillCTR", bsh);
+        }
+        catch (Exception ex)
+        {
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Błąd!", Detail = ex.ToString(), Duration = 4000 });
+        }
+        this.StateHasChanged();
+        await OnInitializedAsync();
+    }
+    async Task BSHRefillCategory(BankStatementHeader bsh)
+    {
+        try
+        {
+            await client.PutAsJsonAsync("api/bankStatement/header/refillCAT", bsh);
         }
         catch (Exception ex)
         {
@@ -204,8 +218,19 @@ else
     {
         if (await js.InvokeAsync<bool>("confirm", $"Czy na pewno chcesz zaksięgować przygotowane pozycje z wyciągu {bsh.BsH_Name}'s ({bsh.BsH_Id})?"))
         {
-            await client.PostAsJsonAsync($"api/transaction/ImportFromBSH",bsh);
-            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "", Detail = "Pomyślnie zaksiegowano wybrane pozycje", Duration = 4000 });
+
+            var response = await client.PostAsJsonAsync($"api/transaction/ImportFromBSH", bsh);
+
+            if (response.StatusCode != System.Net.HttpStatusCode.Created)
+            {
+                string msg = await response.Content.ReadAsStringAsync();
+                NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "", Detail = msg, Duration = 4000 });
+            }
+            else
+            {
+                NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "", Detail = "Pomyślnie zaksiegowano wybrane pozycje", Duration = 4000 });
+            }
+
             bankStatementPositions = await client.GetFromJsonAsync<IEnumerable<BankStatementPosition>>($"api/bankStatement/header/getChildren/{bsh.BsH_Id}");
             this.StateHasChanged();
         }

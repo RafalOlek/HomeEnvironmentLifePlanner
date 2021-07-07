@@ -101,17 +101,17 @@ namespace HomeEnvironmentLifePlanner.Server.Controllers
                                         decimal amount = (decimal)reader.GetDouble(3);
                                         bsp = new BankStatementPosition()
                                         {
-                                            BsP_ExecutionDate = Convert.ToDateTime(reader.GetDateTime(1)),
+                                            BsP_ExecutionDate = Convert.ToDateTime((reader.GetValue(1) == null || reader.GetValue(1).ToString() == "") ? reader.GetDateTime(0) : reader.GetDateTime(1)),
                                             BsP_Amount = amount,
                                             BsP_ImportDate = DateTime.Now,
                                             BsP_IsImportedToTransactions = false,
-                                            Bsp_IsPreparedToImport=false,
+                                            Bsp_IsPreparedToImport = false,
                                             BsP_TransactionType = reader.GetString(8),
                                             BsP_Description = reader.GetString(6),
-                                            BsP_SenderReceiver = reader.GetString(5),
+                                            BsP_SenderReceiver = (reader.GetValue(5) == null) ? "" : reader.GetString(5),
                                             BsP_BSHID = bsh.BsH_Id,
                                             BsP_CURID = _context.Currencies.Where(x => x.CuR_Name == reader.GetString(4)).FirstOrDefault().CuR_Id,
-                                            BsP_RecommendedContractorId = ContractorSeeker(reader.GetString(6)),
+                                            BsP_RecommendedContractorId = ContractorSeeker(reader.GetString(6), (reader.GetValue(5) == null) ? "" : reader.GetString(5)),
                                         };
                                         _context.Add(bsp);
                                         await _context.SaveChangesAsync();
@@ -138,16 +138,34 @@ namespace HomeEnvironmentLifePlanner.Server.Controllers
             }
 
         }
-        [HttpPut("header/refill")]
-        public async Task<IActionResult> BSHPut(BankStatementHeader bankStatmentHeader)
+        [HttpPut("header/refillCTR")]
+        public async Task<IActionResult> BSHPutCTR(BankStatementHeader bankStatmentHeader)
         {
             var bsp = _context.BankStatementPositions.Where(x => x.BsP_BSHID == bankStatmentHeader.BsH_Id && x.BsP_RecommendedContractorId == null).ToList();
             foreach (var item in bsp)
             {
-                int? tmp = ContractorSeeker(item.BsP_Description);
+                int? tmp = ContractorSeeker(item.BsP_Description,item.BsP_SenderReceiver);
                 if (tmp != null)
                 {
                     item.BsP_RecommendedContractorId = tmp;
+                    _context.Entry(item).State = EntityState.Modified;
+                }
+            }
+            await _context.SaveChangesAsync();
+            return NoContent();
+        }
+        [HttpPut("header/refillCAT")]
+        public async Task<IActionResult> BSHPutCAT(BankStatementHeader bankStatmentHeader)
+        {
+            var bss = _context.BankStatementPositions
+                    .Include(x => x.BankStatementSubPositions.Where(x => x.BankStatementPosition.BsP_Id == x.BsS_BSPID && x.BsS_CATID==1))
+                    .Where(x => x.BsP_BSHID == bankStatmentHeader.BsH_Id).ToList();
+            foreach (var item in bss)
+            {
+                int? tmp = CategorySeeker(item.BsP_Description, item.BsP_SenderReceiver);
+                if (tmp != null)
+                {
+                    item.BankStatementSubPositions.FirstOrDefault().BsS_CATID = tmp;
                     _context.Entry(item).State = EntityState.Modified;
                 }
             }
@@ -162,16 +180,26 @@ namespace HomeEnvironmentLifePlanner.Server.Controllers
             await _context.SaveChangesAsync();
             return NoContent();
         }
-        public int? ContractorSeeker(string BsP_Description)
+        public int? ContractorSeeker(string BsP_Description,string BsP_SenderReceiver)
         {
-            if (_context.Contractors.Where(x => BsP_Description.Contains(x.CtR_ReferenceNumber)).Any())
+            if (_context.Contractors.Where(x => BsP_Description.Contains(x.CtR_ReferenceNumber)).Any() && BsP_Description!="")
                 return _context.Contractors.Where(x => BsP_Description.Contains(x.CtR_ReferenceNumber)).Select(x => x.CtR_Id).FirstOrDefault();
+            else if (_context.Contractors.Where(x =>BsP_SenderReceiver.Contains(x.CtR_ReferenceNumber)).Any() && BsP_SenderReceiver!="")
+                return _context.Contractors.Where(x => BsP_SenderReceiver.Contains(x.CtR_ReferenceNumber)).Select(x => x.CtR_Id).FirstOrDefault();
             else
                 return null;
 
         }
+        public int? CategorySeeker(string BsP_Description, string BsP_SenderReceiver)
+        {
+            if (_context.Categories.Where(x => BsP_Description.Contains(x.CaT_ReferenceNumber)).Any() && BsP_Description != "")
+                return _context.Categories.Where(x => BsP_Description.Contains(x.CaT_ReferenceNumber)).Select(x => x.CaT_Id).FirstOrDefault();
+            else if (_context.Categories.Where(x => BsP_SenderReceiver.Contains(x.CaT_ReferenceNumber)).Any() && BsP_SenderReceiver != "")
+                return _context.Categories.Where(x => BsP_SenderReceiver.Contains(x.CaT_ReferenceNumber)).Select(x => x.CaT_Id).FirstOrDefault();
+            else
+                return null;
 
-
+        }
         [HttpGet("positionList")]
         public async Task<IActionResult> BSPGetList()
         {
@@ -202,7 +230,6 @@ namespace HomeEnvironmentLifePlanner.Server.Controllers
             await _context.SaveChangesAsync();
             return Ok(bsp);
         }
-
 
         [HttpGet("subpositionList")]
         public async Task<IActionResult> BSSGetList()

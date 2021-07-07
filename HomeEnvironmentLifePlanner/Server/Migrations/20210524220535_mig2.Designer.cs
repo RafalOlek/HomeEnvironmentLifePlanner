@@ -4,14 +4,16 @@ using HomeEnvironmentLifePlanner.Server.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace HomeEnvironmentLifePlanner.Server.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20210524220535_mig2")]
+    partial class mig2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -682,69 +684,6 @@ namespace HomeEnvironmentLifePlanner.Server.Migrations
                     b.ToTable("ProductPrices");
                 });
 
-            modelBuilder.Entity("HomeEnvironmentLifePlanner.Shared.Models.ShoppingListHeader", b =>
-                {
-                    b.Property<int>("SlH_Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .UseIdentityColumn();
-
-                    b.Property<int?>("SlH_BSPID")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("SlH_Date")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("SlH_Month")
-                        .HasColumnType("int");
-
-                    b.Property<int>("SlH_Number")
-                        .HasColumnType("int");
-
-                    b.Property<int>("SlH_Year")
-                        .HasColumnType("int");
-
-                    b.HasKey("SlH_Id");
-
-                    b.HasIndex("SlH_BSPID");
-
-                    b.ToTable("ShoppingListHeaders");
-                });
-
-            modelBuilder.Entity("HomeEnvironmentLifePlanner.Shared.Models.ShoppingListPosition", b =>
-                {
-                    b.Property<int>("SlP_Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .UseIdentityColumn();
-
-                    b.Property<decimal?>("SlP_Amount")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("SlP_AssumedQuantity")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int?>("SlP_BSSID")
-                        .HasColumnType("int");
-
-                    b.Property<int>("SlP_PRDID")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("SlP_RealizedQuantity")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("SlP_SLHID")
-                        .HasColumnType("int");
-
-                    b.HasKey("SlP_Id");
-
-                    b.HasIndex("SlP_BSSID");
-
-                    b.HasIndex("SlP_SLHID");
-
-                    b.ToTable("ShoppingListPositions");
-                });
-
             modelBuilder.Entity("HomeEnvironmentLifePlanner.Shared.Models.TransactionHeader", b =>
                 {
                     b.Property<int>("TrH_Id")
@@ -1199,32 +1138,6 @@ namespace HomeEnvironmentLifePlanner.Server.Migrations
                     b.Navigation("Product");
                 });
 
-            modelBuilder.Entity("HomeEnvironmentLifePlanner.Shared.Models.ShoppingListHeader", b =>
-                {
-                    b.HasOne("HomeEnvironmentLifePlanner.Shared.Models.BankStatementPosition", "BankStatmentPosition")
-                        .WithMany()
-                        .HasForeignKey("SlH_BSPID");
-
-                    b.Navigation("BankStatmentPosition");
-                });
-
-            modelBuilder.Entity("HomeEnvironmentLifePlanner.Shared.Models.ShoppingListPosition", b =>
-                {
-                    b.HasOne("HomeEnvironmentLifePlanner.Shared.Models.BankStatementSubPosition", "BankStatementSubPosition")
-                        .WithMany()
-                        .HasForeignKey("SlP_BSSID");
-
-                    b.HasOne("HomeEnvironmentLifePlanner.Shared.Models.ShoppingListHeader", "ShoppingListHeader")
-                        .WithMany("ShoppingListPositions")
-                        .HasForeignKey("SlP_SLHID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("BankStatementSubPosition");
-
-                    b.Navigation("ShoppingListHeader");
-                });
-
             modelBuilder.Entity("HomeEnvironmentLifePlanner.Shared.Models.TransactionHeader", b =>
                 {
                     b.HasOne("HomeEnvironmentLifePlanner.Shared.Models.BankStatementPosition", "BankStatmentPosition")
@@ -1352,11 +1265,6 @@ namespace HomeEnvironmentLifePlanner.Server.Migrations
             modelBuilder.Entity("HomeEnvironmentLifePlanner.Shared.Models.ProductGroup", b =>
                 {
                     b.Navigation("PrG_Children");
-                });
-
-            modelBuilder.Entity("HomeEnvironmentLifePlanner.Shared.Models.ShoppingListHeader", b =>
-                {
-                    b.Navigation("ShoppingListPositions");
                 });
 
             modelBuilder.Entity("HomeEnvironmentLifePlanner.Shared.Models.TransactionHeader", b =>

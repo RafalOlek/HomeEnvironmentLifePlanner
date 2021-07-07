@@ -72,16 +72,7 @@
                     </div>
                     <br />
                 </div>
-                <div class="row">
-                    <div class="col-md-2 align-items-center d-flex">
-                        <RadzenLabel Text="Forma płatności" />
-                    </div>
-                    <div class="col-md-10">
-                        <RadzenDropDown AllowClear="false" Name="trnPytId" style="width: 100%;"
-                                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterOperator="StringFilterOperator.StartsWith" AllowFiltering="true"
-                                        Data=@paymentTypes TextProperty="PyT_Name" ValueProperty="PyT_Id" @bind-Value="@transactionHeader.TrH_PYTID" />
-                    </div>
-                </div>
+              
                 <div class="row">
                     <div class="col-md-2" />
                     <div class="col-md-10 d-flex justify-content-center">
@@ -122,9 +113,9 @@
     {
         try
         {
-            currencies = await client.GetFromJsonAsync<List<Currency>>("api/currency");
-            contractors = await client.GetFromJsonAsync<List<Contractor>>("api/contractor");
-            paymentTypes = await client.GetFromJsonAsync<List<PaymentType>>("api/paymentType");
+            currencies = await client.GetFromJsonAsync<List<Currency>>("api/config/currencyList");
+            contractors = await client.GetFromJsonAsync<List<Contractor>>("api/contractor/contractorList");
+            paymentTypes = await client.GetFromJsonAsync<List<PaymentType>>("api/config/paymentTypeList");
         }
         catch (AccessTokenNotAvailableException exception)
         {

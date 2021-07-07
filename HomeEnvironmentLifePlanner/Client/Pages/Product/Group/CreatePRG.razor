@@ -1,0 +1,14 @@
+﻿@page "/product/group/create/{parentId:int}"
+@inject HttpClient http
+@inject NavigationManager uriHelper
+<FormPRG ButtonText="@Properties.Dictionary.sharedCreate" productGroup="@productGroup" Submit="@CreatePorductrGroup" />
+
+@code {
+    [Parameter] public int parentId { get; set; }
+    ProductGroup productGroup = new ProductGroup();
+    async Task CreatePorductrGroup()
+    {
+        await http.PostAsJsonAsync($"api/product/group/addChild/{parentId}", productGroup);
+        uriHelper.NavigateTo("product");
+    }
+}

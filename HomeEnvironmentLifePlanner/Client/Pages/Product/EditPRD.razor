@@ -1,0 +1,33 @@
+﻿
+
+@page "/product/edit/{productId:int}"
+@inject HttpClient http
+@inject NavigationManager uriHelper
+@inject NotificationService NotificationService
+
+<FormPRD ButtonText="@Properties.Dictionary.sharedSave" product="@product" Submit="@EditProduct" />
+@code {
+    [Parameter] public int productId { get; set; }
+    Product product = new Product();
+    protected async override Task OnParametersSetAsync()
+    {
+        product = await http.GetFromJsonAsync<Product>($"api/product/{productId}");
+
+    }
+
+    async Task EditProduct()
+    {
+        try
+        {
+            await http.PutAsJsonAsync("api/product", product);
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = Properties.Dictionary.sharedUpdateOk, Duration = 4000 });
+        }
+        catch (Exception ex)
+        {
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Błąd!", Detail = ex.ToString(), Duration = 4000 });
+
+        }
+        uriHelper.NavigateTo("config");
+
+    }
+}

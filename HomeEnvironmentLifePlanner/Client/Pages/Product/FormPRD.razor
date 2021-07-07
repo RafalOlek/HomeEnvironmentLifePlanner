@@ -1,0 +1,130 @@
+﻿@using HomeEnvironmentLifePlanner.Shared.Models
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@inject HttpClient client
+@inject NavigationManager navigatorManager
+
+@if (product == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <RadzenTemplateForm Data="@product" Submit="@Submit">
+        <DataAnnotationsValidator />
+        <div class="row justify-content-center">
+            <div class="col-md-8 ">
+                <RadzenFieldset Text="Product">
+                    <div class="row">
+                        <div class="col-md-2 align-items-center d-flex">
+                            <RadzenLabel Text="Kod produktu" />
+                        </div>
+                        <div class="col-md-10">
+                            <RadzenTextBox style="width: 100%;" @bind-Value="@product.PrD_Code" Name="prdCode" />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-2" />
+                        <div class="col-md-10 d-flex justify-content-center">
+                            <RadzenRequiredValidator Component="prdCode" Text="@Properties.Dictionary.sharedNameRequired" Popup=@popup Style="position: absolute" />
+                        </div>
+                        <br />
+                    </div>
+                    <div class="row">
+                        <div class="col-md-2 align-items-center d-flex">
+                            <RadzenLabel Text="Nazwa produktu" />
+                        </div>
+                        <div class="col-md-10">
+                            <RadzenTextBox style="width: 100%;" @bind-Value="@product.PrD_Name" Name="prdName" />
+                        </div>
+                    </div>
+                    <br />
+                    <div class="row">
+                        <div class="col-md-2" />
+                        <div class="col-md-10 d-flex justify-content-center">
+                            <RadzenRequiredValidator Component="prdName" Text="@Properties.Dictionary.sharedNameRequired" Popup=@popup Style="position: absolute" />
+                        </div>
+                        <br />
+                    </div>
+                    @if (prgID == null)
+                    {
+                        <div class="row">
+                            <div class="col-md-2 align-items-center d-flex">
+                                <RadzenLabel Text="Grupa" />
+                            </div>
+                            <div class="col-md-10">
+                                <RadzenDropDown AllowClear="false" Name="prdPrgId" style="width: 100%;"
+                                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterOperator="StringFilterOperator.StartsWith" AllowFiltering="true"
+                                                Data=@productGroups TextProperty="CtG_Name" ValueProperty="PrG_Id" @bind-Value="@product.PrD_PRGID" />
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-2" />
+                            <div class="col-md-10 d-flex justify-content-center">
+                                <Radzen.Blazor.RadzenNumericRangeValidator Component="prdPrgId" Min="1" Text="Należy wybrać grupę!" Popup=@popup Style="position: absolute" />
+                            </div>
+                            <br />
+                        </div>
+                    }
+
+                    @*<div class="row">
+            <div class="col-md-2 align-items-center d-flex">
+                <RadzenLabel Text="Grupa" />
+            </div>
+            <div class="col-md-10">
+                <RadzenDropDown AllowClear="false" Name="catGroup" style="width: 100%;"
+                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterOperator="StringFilterOperator.StartsWith" AllowFiltering="true"
+                                Data=@categories TextProperty="CaT_Name" ValueProperty="CaT_Id" @bind-Value="@category.CaT_ParentId" />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-2" />
+            <div class="col-md-10 d-flex justify-content-center">
+                <Radzen.Blazor.RadzenNumericRangeValidator Component="catGroup" Min="1" Text="Należy wybrać typ!" Popup=@popup Style="position: absolute" />
+            </div>
+            <br />
+        </div>*@
+                    <div class="row ">
+                        <div class="col-md-12 d-flex align-items-end justify-content-end" style="margin-top: 16px;">
+                            <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Secondary" Text="@Properties.Dictionary.sharedCancel" Click="@(x=> Cancel())" />
+                            <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Submit" ButtonStyle="ButtonStyle.Primary">@ButtonText </RadzenButton>
+                        </div>
+
+                    </div>
+
+                </RadzenFieldset>
+            </div>
+        </div>
+
+    </RadzenTemplateForm>
+}
+@code {
+    [Parameter] public Product product { get; set; }
+    [Parameter] public string ButtonText { get; set; } = "Zapisz";
+    [Parameter] public EventCallback<Product> Submit { get; set; }
+    [Parameter] public int? prgID { get; set; }
+
+    List<ProductGroup> productGroups = new List<ProductGroup>();
+
+    bool popup;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            productGroups =  await client.GetFromJsonAsync<List<ProductGroup>>("api/product/groupList");
+
+
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+        }
+    }
+    void Cancel()
+    {
+
+        navigatorManager.NavigateTo("product");
+    }
+}

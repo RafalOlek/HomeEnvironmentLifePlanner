@@ -70,7 +70,7 @@ else
         try
         {
             ctgParentId = 1;
-            contractorGroups = await client.GetFromJsonAsync<ContractorGroup[]>("api/contractor/groupList");
+            contractorGroups = await client.GetFromJsonAsync<IEnumerable<ContractorGroup>>("api/contractor/groupList");
         }
         catch (AccessTokenNotAvailableException exception)
         {

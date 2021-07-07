@@ -13,24 +13,48 @@
 {
     <text>@HomeEnvironmentLifePlanner.Client.Properties.Dictionary.sharedLoading</text>
 }
-else if (transactionHeaders.Length == 0)
+else if (transactionHeaders.Count() == 0)
 {
     <text>@HomeEnvironmentLifePlanner.Client.Properties.Dictionary.sharedNoRecords</text>
 }
 else
 {
 
-    <RadzenGrid Data="@transactionHeaders" AllowFiltering="true" AllowPaging="true" AllowSorting="true" TItem="TransactionHeader" ColumnWidth="200px">
+    <RadzenGrid @ref="trhGrid" Data="@transactionHeaders" AllowFiltering="true" AllowPaging="true" AllowSorting="true" TItem="TransactionHeader" PageSize="100" ExpandMode="DataGridExpandMode.Single" Value="@transactionHeader" RowExpand="@(args => TRHRowExpand(args))" RowCollapse="@(args => TRHRowCollapse(args))" RowUpdate="@(args => TRHChange(args))" ColumnWidth="200px">
+        <Template Context="bsp">
+
+            <RadzenGrid @ref="trpGrid" Data="@transactionPositions" TItem="TransactionPosition" Style="width:35%;margin-left:14px">
+                <Columns>
+                    <RadzenGridColumn TItem="TransactionPosition" Property="TrP_Amount" Title="Kwota" Width="200px">
+                        <Template Context="trp">
+                            <RadzenNumeric style="width: 100%;" @bind-Value="@trp.TrP_Amount" Name="trpAmount" TValue="decimal" Change="args => TRPChange(trp)" />
+                        </Template>
+                    </RadzenGridColumn>
+                    <RadzenGridColumn TItem="TransactionPosition" Property="TrP_CATID" Title="Kategoria">
+                        <Template Context="trp">
+                            <RadzenDropDown AllowClear="false" style="width: 100%;" TValue="int?" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterOperator="StringFilterOperator.StartsWith" AllowFiltering="true" Data=@categories TextProperty="CaT_Name" ValueProperty="CaT_Id" @bind-Value="@trp.TrP_CATID" Change="args => TRPChange(trp)" />
+                        </Template>
+                    </RadzenGridColumn>
+
+                </Columns>
+            </RadzenGrid>
+
+        </Template>
         <Columns>
-            <RadzenGridColumn TItem="TransactionHeader" Property="TrH_Id" Title="ID" />
-            
-            <RadzenGridColumn TItem="TransactionHeader" Property="Currency.CuR_Name<" Title="Waluta" />
-            <RadzenGridColumn TItem="TransactionHeader" Property="Contractor.CtR_Name" Title="Kontrahent" />
+            <RadzenGridColumn TItem="TransactionHeader" Property="TrH_Id" Title="ID" />     
+            <RadzenGridColumn TItem="TransactionHeader"  Context="trh" SortProperty="Category.CuR_Name" Title="Waluta">
+                <Template>
+                    @trh.Currency.CuR_Name
+                </Template>
+            </RadzenGridColumn>
+            <RadzenGridColumn TItem="TransactionHeader" Context="trh" SortProperty="Contractor.CtR_Name" Title="Kontrahent" >
+                <Template>
+                    @trh.Contractor.CtR_Acronym
+                </Template>
+            </RadzenGridColumn>
             <RadzenGridColumn TItem="TransactionHeader" Property="TrH_ExecutionDate" Title="Data przelewu" />
-            <RadzenGridColumn TItem="TransactionHeader" Property="PaymentType.PyT_Name" Title="Typ płatności" />
             <RadzenGridColumn TItem="TransactionHeader" Property="TrH_CreateDate" Title="Data utworzenia" />
             <RadzenGridColumn TItem="TransactionHeader" Property="TrH_Description" Title="Opis" />
-
             <RadzenGridColumn TItem="TransactionHeader" Context="transaction" Title="Akcje">
                 <Template Context="transaction">
                     <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Primary" Click="@(x=> navigatorManager.NavigateTo($"transaction/edit/{transaction.TrH_Id}"))" Icon="create" />
@@ -41,19 +65,52 @@ else
     </RadzenGrid>
 }
 @code {
-    TransactionHeader[] transactionHeaders { get; set; }
+    IEnumerable<TransactionHeader> transactionHeaders { get; set; }
+    IEnumerable<TransactionPosition> transactionPositions { get; set; }
+    IEnumerable<Category> categories;
+    TransactionHeader transactionHeader { get; set; }
+    TransactionPosition transactionPosition { get; set; }
+    RadzenGrid<TransactionHeader> trhGrid;
+    RadzenGrid<TransactionPosition> trpGrid;
+
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            transactionHeaders = await client.GetFromJsonAsync<TransactionHeader[]>("api/transaction");
-
+            transactionHeaders = await client.GetFromJsonAsync<IEnumerable<TransactionHeader>>("api/transaction/headerList");
+            categories = await client.GetFromJsonAsync<IEnumerable<Category>>("api/config/categoryList");
+            if (transactionHeader == null)
+                transactionHeader = transactionHeaders.FirstOrDefault();
         }
         catch (AccessTokenNotAvailableException exception)
         {
             exception.Redirect();
         }
 
+    }
+    async Task TRHChange(TransactionHeader trh)
+    {
+        await client.PutAsJsonAsync($"api/transaction/header", trh);
+        this.StateHasChanged();
+
+    }
+    async Task TRHRowExpand(TransactionHeader trh)
+    {
+        transactionHeader = trh;
+        transactionPositions = null;
+        transactionPositions = await client.GetFromJsonAsync<IEnumerable<TransactionPosition>>(@$"api/transaction/header/getChildren/{transactionHeader.TrH_Id}");
+        this.StateHasChanged();
+    }
+    void TRHRowCollapse(TransactionHeader trh)
+    {
+        transactionHeader = null;
+        transactionPositions = null;
+        this.StateHasChanged();
+    }
+    async Task TRPChange(TransactionPosition trp)
+    {
+        await client.PutAsJsonAsync($"api/transaction/position", trp);
+        this.StateHasChanged();
     }
     async Task Delete(int transactionId)
     {

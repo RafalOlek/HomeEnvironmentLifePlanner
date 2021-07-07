@@ -34,8 +34,10 @@ namespace HomeEnvironmentLifePlanner.Server
             //    options.JsonSerializerOptions.PropertyNamingPolicy = null;
             //});
             services.AddDbContext<ApplicationDbContext>(options =>
+            {
                 options.UseSqlServer(
-                    Configuration.GetConnectionString("LocalDb")));
+                    Configuration.GetConnectionString("LocalDb"));
+                }, ServiceLifetime.Transient);
 
             services.AddDatabaseDeveloperPageExceptionFilter();
 
