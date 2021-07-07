@@ -72,7 +72,7 @@
                             <div>
                                 <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Primary" Click=@(args => CATEdit(catParentId))   Icon="create" />
                                 <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Danger" Click="@(categoryId => CATDelete(catParentId))" Icon="delete" />
-                                <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Primary" Click="@(x => navigatorManager.NavigateTo($"category/create/{catParentId}"))" Icon="add_box" />
+                                <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Primary" Click="@(categoryId => CATCreate(catParentId))"Icon="add_box" />
                             </div>
                         </RadzenCard>
                     </div>
@@ -158,6 +158,13 @@
         categories = await client.GetFromJsonAsync<IEnumerable<HomeEnvironmentLifePlanner.Shared.Models.Category>>("api/config/categoryList");
         await OnInitializedAsync();
     }
+    async Task CATCreate(int? categoryId)
+    {
+        var result = await dialogService.OpenAsync<Category.CreateCAT>($"Nowa Kategoria", new Dictionary<string, object>() { { "parentId", categoryId } }, new DialogOptions() { Width = "1000px", Height = "530px" });
+
+        categories = await client.GetFromJsonAsync<IEnumerable<HomeEnvironmentLifePlanner.Shared.Models.Category>>("api/config/categoryList");
+        await OnInitializedAsync();
+    }
     async Task CATDelete(int? categoryId)
     {
         var cat = categories.First(x => x.CaT_Id == categoryId);
@@ -186,7 +193,7 @@
 
         }
     }
-   void CATOnExpand(TreeExpandEventArgs args)
+    void CATOnExpand(TreeExpandEventArgs args)
     {
         var category = args.Value as HomeEnvironmentLifePlanner.Shared.Models.Category;
         args.Children.Data = categories.Where(x => x.CaT_ParentId == category.CaT_Id);

@@ -51,12 +51,19 @@ namespace HomeEnvironmentLifePlanner.Server.Controllers
         [HttpPost("category/{parentId}")]
         public async Task<IActionResult> CATPostParent(Category category, int? parentId)
         {
-            if (parentId != 1 && category.CaT_Id == 1)
+            try {
+                if (parentId != 1 && category.CaT_Id == 1)
+                    category.CaT_CTYID = _context.Categories.Where(x => x.CaT_Id == parentId).FirstOrDefault().CaT_CTYID;
+                category.CaT_ParentId = parentId;
                 category.CaT_CTYID = _context.Categories.Where(x => x.CaT_Id == parentId).FirstOrDefault().CaT_CTYID;
-            category.CaT_ParentId = parentId;
-            _context.Add(category);
-            await _context.SaveChangesAsync();
-            return Ok(category.CaT_Id);
+                _context.Add(category);
+                await _context.SaveChangesAsync();
+                return Ok(category.CaT_Id);
+            }
+            catch(Exception ex)
+            {
+                return NoContent();
+            }
         }
         [HttpPut("category")]
         public async Task<IActionResult> CATPut(Category category)

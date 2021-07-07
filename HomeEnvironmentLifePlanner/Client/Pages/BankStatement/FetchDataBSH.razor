@@ -48,7 +48,7 @@ else
     </RadzenGrid>
     <RadzenUpload Url="api/bankStatement/header/import" Style="margin-bottom: 20px;" Accept=".xlsx,.xls" ChooseText="Wgraj wyciąg" />
     <RadzenLabel Text="@(bankStatementPosition==null?"": bankStatementPosition.BsP_Id.ToString())" Style="color:red" />
-    <RadzenGrid @ref="bspGrid" Data="@bankStatementPositions" AllowFiltering="true" AllowPaging="true" AllowSorting="true" TItem="BankStatementPosition" PageSize="100" ExpandMode="DataGridExpandMode.Single" Value="@bankStatementPosition" RowExpand="@(args => BSPRowExpand(args))" RowCollapse="@(args => BSPRowCollapse(args))" RowUpdate="@(args => BSPChange(args))">
+    <RadzenGrid @ref="bspGrid" Data="@bankStatementPositions" AllowFiltering="true" AllowPaging="true" AllowSorting="true" TItem="BankStatementPosition" PageSize="100" ExpandMode="DataGridExpandMode.Single" Value="@bankStatementPosition" RowExpand="@(args => BSPRowExpand(args))" RowCollapse="@(args => BSPRowCollapse(args))" RowUpdate="@(args => BSPChange(args))" FilterMode="FilterMode.Advanced" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive">
         <Template Context="bsp">
             <div class="col-md-10">
                 <RadzenLabel Text="@sumWarningText" Style="color:red" Visible="@sumWarning" />
@@ -62,7 +62,7 @@ else
                     </RadzenGridColumn>
                     <RadzenGridColumn TItem="BankStatementSubPosition" Property="BsS_CATID" Title="Kategoria">
                         <Template Context="bss">
-                            <RadzenDropDown AllowClear="false" style="width: 100%;" TValue="int?" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterOperator="StringFilterOperator.StartsWith" AllowFiltering="true" Data=@categories TextProperty="CaT_Name" ValueProperty="CaT_Id" @bind-Value="@bss.BsS_CATID" Change="args => BSSChange(bss)"  Disabled="@bankStatementPosition.BsP_IsImportedToTransactions" />
+                            <RadzenDropDown AllowClear="false" style="width: 100%;" TValue="int?"  FilterOperator="StringFilterOperator.StartsWith" AllowFiltering="true" Data=@categories.OrderBy(x=>x.CaT_Name) TextProperty="CaT_Name" ValueProperty="CaT_Id" @bind-Value="@bss.BsS_CATID" Change="args => BSSChange(bss)"  Disabled="@bankStatementPosition.BsP_IsImportedToTransactions" />
                         </Template>
                     </RadzenGridColumn>
                     <RadzenGridColumn TItem="BankStatementSubPosition" Context="bss" Title="Akcje" Width="80px">
@@ -85,31 +85,39 @@ else
                 <Template Context="bsp">
                     <p style="white-space:pre-wrap">@bsp.BsP_Description</p>
                 </Template>
+                
             </RadzenGridColumn>
-            <RadzenGridColumn TItem="BankStatementPosition" Property="BsP_IsImportedToTransactions" Title="Zaksięgowany" Width="80px">
+            <RadzenGridColumn TItem="BankStatementPosition" Property="BsP_IsImportedToTransactions" Title="Zaksięgowany" Width="80px" >
                 <Template Context="bsp">
                     <RadzenCheckBox TValue="bool" Value="bsp.BsP_IsImportedToTransactions" Disabled="true" />
                 </Template>
             </RadzenGridColumn>
-            <RadzenGridColumn TItem="BankStatementPosition" Property="BsP_SenderReceiver" Title="Nadawca/odbiorca" Width="200px">
+            <RadzenGridColumn TItem="BankStatementPosition" Property="BsP_SenderReceiver" Title="Nadawca/odbiorca" Width="200px" >
                 <Template Context="bsp">
                     <p style="white-space:pre-wrap">@bsp.BsP_SenderReceiver</p>
                 </Template>
+
             </RadzenGridColumn>
             <RadzenGridColumn TItem="BankStatementPosition" Property="BsP_ExecutionDate" Title="Czas realizacji" Width="130px">
                 <Template Context="bsp">
                     @String.Format("{0:d}", bsp.BsP_ExecutionDate)
                 </Template>
             </RadzenGridColumn>
-            <RadzenGridColumn TItem="BankStatementPosition" Property="BsP_RecommendedContractorId" Title="Kontrahent proponowany" Width="200px">
+            <RadzenGridColumn TItem="BankStatementPosition" Property="RecommendedContractor.CtR_Acronym" Title="Kontrahent proponowany" Width="200px" Filterable="true">
                 <Template Context="bsp">
                     <RadzenDropDown AllowClear="false" style="width: 100%;" TValue="int?"
-                                    FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterOperator="StringFilterOperator.StartsWith" AllowFiltering="true" Data=@contractors TextProperty="CtR_Acronym" ValueProperty="CtR_Id" @bind-Value="@bsp.BsP_RecommendedContractorId" Change="args => BSPChange(bsp)" Disabled="@(bsp.BsP_IsImportedToTransactions)" />
+                                    FilterOperator="StringFilterOperator.Contains" AllowFiltering="true" Data=@contractors TextProperty="CtR_Acronym" ValueProperty="CtR_Id" @bind-Value="@bsp.BsP_RecommendedContractorId" Change="args => BSPChange(bsp)" Disabled="@(bsp.BsP_IsImportedToTransactions)" />
                 </Template>
+                <FilterTemplate >
+                    <RadzenDropDown @bind-Value="@CTRID" TextProperty="CtR_Acronym" ValueProperty="CtR_Id" Style="width:100%" AllowClear="true"
+                                    Change=@BSPOnChangeCTRFiltr Data="@contractors"
+                                     />
+
+                </FilterTemplate>
             </RadzenGridColumn>
             <RadzenGridColumn TItem="BankStatementPosition" Property="BsP_RecommendedAccountId" Title="Konto proponowane" Width="200px">
                 <Template Context="bsp">
-                    <RadzenDropDown AllowClear="false" style="width: 100%;" TValue="int?" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterOperator="StringFilterOperator.StartsWith" AllowFiltering="true" Data=@accounts TextProperty="AcC_Name" ValueProperty="AcC_Id" @bind-Value="@bsp.BsP_RecommendedAccountId" Change="args => BSPChange(bsp)" Disabled="@(bsp.BsP_IsImportedToTransactions)" />
+                    <RadzenDropDown AllowClear="false" style="width: 100%;" TValue="int?" FilterCaseSensitivity="FilterCaseSensitivity.Default" FilterOperator="StringFilterOperator.Contains" AllowFiltering="true" Data=@accounts TextProperty="AcC_Name" ValueProperty="AcC_Id" @bind-Value="@bsp.BsP_RecommendedAccountId" Change="args => BSPChange(bsp)" Disabled="@(bsp.BsP_IsImportedToTransactions)" />
                 </Template>
             </RadzenGridColumn>
             <RadzenGridColumn TItem="BankStatementPosition" Property="BankStatementSubPosition.BsS_CATID" Title="Kategoria" Width="200px">
@@ -138,6 +146,8 @@ else
     BankStatementPosition bankStatementPosition;
     IEnumerable<BankStatementSubPosition> bankStatementSubPositions { get; set; }
     IEnumerable<BankStatementPosition> bankStatementPositions { get; set; }
+    IEnumerable<BankStatementPosition> tmpbankStatementPositions { get; set; }
+
     bool sumWarning = false;
     string sumWarningText = "";
     IEnumerable<BankStatementHeader> bankStatementHeaders { get; set; }
@@ -148,6 +158,7 @@ else
     RadzenGrid<BankStatementPosition> bspGrid;
     RadzenGrid<BankStatementSubPosition> bssGrid;
     RadzenGrid<BankStatementHeader> bshGrid;
+    int CTRID;
     protected override async Task OnInitializedAsync()
     {
         try
@@ -249,6 +260,23 @@ else
         CheckAmountSum();
         this.StateHasChanged();
     }
+    async Task BSPOnChangeCTRFiltr()
+    {
+        if(CTRID != 0)
+        {
+            bankStatementPositions = bankStatementPositions.Where(x => x.BsP_RecommendedContractorId == CTRID);
+
+        }
+        else
+        {
+            bankStatementPositions= await client.GetFromJsonAsync<IEnumerable<BankStatementPosition>>($"api/bankStatement/header/getChildren/{bankStatementHeader.BsH_Id}");
+            bankStatementPosition = null;
+            bspGrid.ExpandRow(null);
+            this.StateHasChanged();
+        }
+
+
+    }
     void BSPRowCollapse(BankStatementPosition bsp)
     {
         bankStatementPosition = null;
@@ -263,13 +291,15 @@ else
         int bssCount = bankStatementSubPositions.Count();
         bankStatementSubPositions = null;
         bankStatementSubPositions = await client.GetFromJsonAsync<IEnumerable<BankStatementSubPosition>>(@$"api/bankStatement/position/getChildren/{bankStatementPosition.BsP_Id}");
-        if (bssCount <= 1)
-        {
-            bankStatementPositions = await client.GetFromJsonAsync<IEnumerable<BankStatementPosition>>($"api/bankStatement/header/getChildren/{bankStatementHeader.BsH_Id}");
-            await bspGrid.ExpandRow(bankStatementPositions.Where(x=>x.BsP_Id==bss.BsS_BSPID).FirstOrDefault());
+        //if (bssCount <= 1)
+        //{
+        //    bankStatementPositions = await client.GetFromJsonAsync<IEnumerable<BankStatementPosition>>($"api/bankStatement/header/getChildren/{bankStatementHeader.BsH_Id}");
+        //    await bspGrid.ExpandRow(bankStatementPositions.Where(x=>x.BsP_Id==bss.BsS_BSPID).FirstOrDefault());
 
-        }
+        //}
         CheckAmountSum();
+        await bssGrid.Reload();
+
         this.StateHasChanged();
     }
     async Task BSSChange(BankStatementSubPosition bss)

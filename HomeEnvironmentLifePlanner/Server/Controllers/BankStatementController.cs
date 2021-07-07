@@ -56,7 +56,8 @@ namespace HomeEnvironmentLifePlanner.Server.Controllers
             {
                 var bankStatmentPositions = await _context.BankStatementPositions
                         .Include(x => x.BankStatementSubPositions.Where(x => x.BankStatementPosition.BsP_Id == x.BsS_BSPID))
-                      .Where(a => a.BsP_BSHID == bshId).ToListAsync();
+                        .Include(y=>y.RecommendedContractor)
+                      .Where(a => a.BsP_BSHID == bshId &&(a.BsP_RecommendedContractorId == null || a.RecommendedContractor.CtR_Id == a.BsP_RecommendedContractorId)).ToListAsync();
                 return Ok(bankStatmentPositions);
             }
             catch (Exception ex)
@@ -144,7 +145,7 @@ namespace HomeEnvironmentLifePlanner.Server.Controllers
             var bsp = _context.BankStatementPositions.Where(x => x.BsP_BSHID == bankStatmentHeader.BsH_Id && x.BsP_RecommendedContractorId == null).ToList();
             foreach (var item in bsp)
             {
-                int? tmp = ContractorSeeker(item.BsP_Description,item.BsP_SenderReceiver);
+                int? tmp = ContractorSeeker(item.BsP_Description, item.BsP_SenderReceiver);
                 if (tmp != null)
                 {
                     item.BsP_RecommendedContractorId = tmp;
@@ -158,8 +159,8 @@ namespace HomeEnvironmentLifePlanner.Server.Controllers
         public async Task<IActionResult> BSHPutCAT(BankStatementHeader bankStatmentHeader)
         {
             var bss = _context.BankStatementPositions
-                    .Include(x => x.BankStatementSubPositions.Where(x => x.BankStatementPosition.BsP_Id == x.BsS_BSPID && x.BsS_CATID==1))
-                    .Where(x => x.BsP_BSHID == bankStatmentHeader.BsH_Id).ToList();
+                    .Include(x => x.BankStatementSubPositions.Where(x => x.BankStatementPosition.BsP_Id == x.BsS_BSPID))
+                    .Where(x => x.BsP_BSHID == bankStatmentHeader.BsH_Id && x.BankStatementSubPositions.Where(y => y.BsS_CATID == 1).Any()).ToList();
             foreach (var item in bss)
             {
                 int? tmp = CategorySeeker(item.BsP_Description, item.BsP_SenderReceiver);
@@ -180,22 +181,44 @@ namespace HomeEnvironmentLifePlanner.Server.Controllers
             await _context.SaveChangesAsync();
             return NoContent();
         }
-        public int? ContractorSeeker(string BsP_Description,string BsP_SenderReceiver)
+        public int? ContractorSeeker(string BsP_Description, string BsP_SenderReceiver)
         {
-            if (_context.Contractors.Where(x => BsP_Description.Contains(x.CtR_ReferenceNumber)).Any() && BsP_Description!="")
-                return _context.Contractors.Where(x => BsP_Description.Contains(x.CtR_ReferenceNumber)).Select(x => x.CtR_Id).FirstOrDefault();
-            else if (_context.Contractors.Where(x =>BsP_SenderReceiver.Contains(x.CtR_ReferenceNumber)).Any() && BsP_SenderReceiver!="")
-                return _context.Contractors.Where(x => BsP_SenderReceiver.Contains(x.CtR_ReferenceNumber)).Select(x => x.CtR_Id).FirstOrDefault();
-            else
+            try
+            {
+                List<Tuple<int, string>> refeList = new List<Tuple<int, string>>();
+                foreach (var item in _context.Contractors)
+                {
+                    foreach (var ite in item.CtR_ReferenceNumber.Split(";"))
+                        refeList.Add(new Tuple<int, string>(item.CtR_Id, ite));
+                }
+
+
+                if (refeList.Where(x => BsP_Description.ToUpper().Contains(x.Item2.ToUpper())).Any() && BsP_Description != "")
+                    return refeList.Where(x => BsP_Description.ToUpper().Contains(x.Item2.ToUpper())).Select(x => x.Item1).FirstOrDefault();
+                else if (refeList.Where(x => BsP_SenderReceiver.ToUpper().Contains(x.Item2.ToUpper())).Any() && BsP_SenderReceiver != "")
+                    return refeList.Where(x => BsP_SenderReceiver.ToUpper().Contains(x.Item2.ToUpper())).Select(x => x.Item1).FirstOrDefault();
+                else
+                    return null;
+            }
+            catch (Exception ex)
+            {
                 return null;
+            }
 
         }
         public int? CategorySeeker(string BsP_Description, string BsP_SenderReceiver)
         {
-            if (_context.Categories.Where(x => BsP_Description.Contains(x.CaT_ReferenceNumber)).Any() && BsP_Description != "")
-                return _context.Categories.Where(x => BsP_Description.Contains(x.CaT_ReferenceNumber)).Select(x => x.CaT_Id).FirstOrDefault();
-            else if (_context.Categories.Where(x => BsP_SenderReceiver.Contains(x.CaT_ReferenceNumber)).Any() && BsP_SenderReceiver != "")
-                return _context.Categories.Where(x => BsP_SenderReceiver.Contains(x.CaT_ReferenceNumber)).Select(x => x.CaT_Id).FirstOrDefault();
+            List<Tuple<int, string>> refeList = new List<Tuple<int, string>>();
+            foreach (var item in _context.Categories)
+            {
+                foreach (var ite in item.CaT_ReferenceNumber.Split(";"))
+                    refeList.Add(new Tuple<int, string>(item.CaT_Id, ite));
+            }
+
+            if (refeList.Where(x => BsP_Description.ToUpper().Contains(x.Item2.ToUpper())).Any() && BsP_Description != "")
+                return refeList.Where(x => BsP_Description.ToUpper().Contains(x.Item2.ToUpper())).Select(x => x.Item1).FirstOrDefault();
+            else if (refeList.Where(x => BsP_SenderReceiver.ToUpper().Contains(x.Item2.ToUpper())).Any() && BsP_SenderReceiver != "")
+                return refeList.Where(x => BsP_SenderReceiver.ToUpper().Contains(x.Item2.ToUpper())).Select(x => x.Item1).FirstOrDefault();
             else
                 return null;
 

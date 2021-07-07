@@ -40,6 +40,7 @@ namespace HomeEnvironmentLifePlanner.Shared.Models
         public BankStatementHeader BankStatmentHeader { get; set; }
         [ForeignKey("BsP_CURID")]
         public Currency Currency { get; set; }
+        [JsonIgnore]
         [ForeignKey("BsP_RecommendedContractorId")]
         public virtual Contractor RecommendedContractor { get; set; }
         [ForeignKey("BsP_RecommendedAccountId")]

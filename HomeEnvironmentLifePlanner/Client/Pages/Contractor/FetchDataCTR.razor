@@ -5,6 +5,8 @@
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication
 @inject NavigationManager navigatorManager
 @inject NotificationService NotificationService
+@inject DialogService dialogService
+
 
 <h2><RadzenIcon Icon="people" />Kontrahenci</h2>
 
@@ -18,49 +20,49 @@ else if (contractorGroups.Count() == 0)
 }
 else
 {
-<RadzenCard Style="height:100%">
-    <div class="row">
-        <div class="col-md-6">
-            <RadzenTree Change=@OnChange Data=@contractorGroups.Where(x=>x.CtG_ParentId==null) Expand=@OnLoad Style="width: 100%;">
-                <RadzenTreeLevel TextProperty="CtG_Name" Expanded="(x) =>true" />
-            </RadzenTree>
-        </div>
-        <div class="col-md-6">
-            <RadzenCard>
-                <div style="margin-top:20px">Nazwa grupy kontrahentów: <b>@contractorGroups.Where(x => x.CtG_Id == ctgParentId).FirstOrDefault().CtG_Name</b></div>
-                <div>ID:<b>@contractorGroups.Where(x => x.CtG_Id == ctgParentId).FirstOrDefault().CtG_Id</b></div>
-                <br />
-                <div>
-                    <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Primary" Click="@(x=> navigatorManager.NavigateTo($"contractor/group/edit/{ctgParentId}"))" Icon="create" />
-                    <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Danger" Click="@(accountId=>Delete(ctgParentId) )" Icon="delete" />
-                    <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Primary" Click="@(x=> navigatorManager.NavigateTo($"contractor/group/create/{ctgParentId}"))" Icon="group_add" />
-                    <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Primary" Click="@(x=> navigatorManager.NavigateTo($"contractor/createAndAssigntoGroup/{ctgParentId}"))" Icon="person_add" />
+    <RadzenCard Style="height:100%">
+        <div class="row">
+            <div class="col-md-6">
+                <RadzenTree Change=@OnChange Data=@contractorGroups.Where(x=>x.CtG_ParentId==null) Expand=@OnLoad Style="width: 100%;">
+                    <RadzenTreeLevel TextProperty="CtG_Name" Expanded="(x) =>true" />
+                </RadzenTree>
+            </div>
+            <div class="col-md-6">
+                <RadzenCard>
+                    <div style="margin-top:20px">Nazwa grupy kontrahentów: <b>@contractorGroups.Where(x => x.CtG_Id == ctgParentId).FirstOrDefault().CtG_Name</b></div>
+                    <div>ID:<b>@contractorGroups.Where(x => x.CtG_Id == ctgParentId).FirstOrDefault().CtG_Id</b></div>
+                    <br />
+                    <div>
+                        <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Primary" Click="@(x=> navigatorManager.NavigateTo($"contractor/group/edit/{ctgParentId}"))" Icon="create" />
+                        <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Danger" Click="@(accountId=>Delete(ctgParentId) )" Icon="delete" />
+                        <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Primary" Click="@(x=> navigatorManager.NavigateTo($"contractor/group/create/{ctgParentId}"))" Icon="group_add" />
+                        <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Primary" Click="@(x=>CTRCreate())" Icon="person_add" />
 
-                </div>
-            </RadzenCard>
+                    </div>
+                </RadzenCard>
+            </div>
         </div>
-    </div>
-    <RadzenGrid Data="@contractors" AllowFiltering="true" AllowPaging="true" AllowSorting="true" TItem="Contractor">
-        <Columns>
-            <RadzenGridColumn TItem="Contractor" Property="CtR_Id" Title="ID" Width="60px" />
-            <RadzenGridColumn TItem="Contractor" Property="CtR_Acronym" Title="Akronim" Width="160px" />
-            <RadzenGridColumn TItem="Contractor" Property="CtR_Name" Title="Nazwa" Width="200px" />
-            <RadzenGridColumn TItem="Contractor" Property="CtR_ReferenceNumber" Title="Numer referencyjny" Width="200px" />
-            <RadzenGridColumn TItem="Contractor" Property="CtR_Country" Title="Kraj" Width="40px" />
-            <RadzenGridColumn TItem="Contractor" Property="CtR_City" Title="Miasto" Width="80px" />
-            <RadzenGridColumn TItem="Contractor" Property="CtR_Street" Title="Ulica" Width="120px" />
-            <RadzenGridColumn TItem="Contractor" Context="contractor" Title="Akcje" Width="120px">
-                <Template Context="contractor">
-                    <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Primary" Click="@(x=> navigatorManager.NavigateTo($"contractor/edit/{contractor.CtR_Id}"))" Icon="create" />
-                    <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Danger" Click="@(contractorId=>Delete(contractor.CtR_Id) )" Icon="delete" />
-                </Template>
-            </RadzenGridColumn>
-        </Columns>
-    </RadzenGrid>
-</RadzenCard>
+        <RadzenGrid Data="@contractors" AllowFiltering="true" AllowPaging="true" AllowSorting="true" TItem="Contractor">
+            <Columns>
+                <RadzenGridColumn TItem="Contractor" Property="CtR_Id" Title="ID" Width="60px" />
+                <RadzenGridColumn TItem="Contractor" Property="CtR_Acronym" Title="Akronim" Width="160px" />
+                <RadzenGridColumn TItem="Contractor" Property="CtR_Name" Title="Nazwa" Width="200px" />
+                <RadzenGridColumn TItem="Contractor" Property="CtR_ReferenceNumber" Title="Numer referencyjny" Width="200px" />
+                <RadzenGridColumn TItem="Contractor" Property="CtR_Country" Title="Kraj" Width="40px" />
+                <RadzenGridColumn TItem="Contractor" Property="CtR_City" Title="Miasto" Width="80px" />
+                <RadzenGridColumn TItem="Contractor" Property="CtR_Street" Title="Ulica" Width="120px" />
+                <RadzenGridColumn TItem="Contractor" Context="contractor" Title="Akcje" Width="120px">
+                    <Template Context="contractor">
+                        <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Primary" Click="@(x=> navigatorManager.NavigateTo($"contractor/edit/{contractor.CtR_Id}"))" Icon="create" />
+                        <RadzenButton style="margin: 0 1rem 1rem 0" ButtonType="ButtonType.Button" ButtonStyle="ButtonStyle.Danger" Click="@(contractorId=>Delete(contractor.CtR_Id) )" Icon="delete" />
+                    </Template>
+                </RadzenGridColumn>
+            </Columns>
+        </RadzenGrid>
+    </RadzenCard>
 
 }
-@code 
+@code
 {
     IEnumerable<ContractorGroup> contractorGroups { get; set; }
     IEnumerable<Contractor> contractors { get; set; }
@@ -113,5 +115,10 @@ else
         args.Children.TextProperty = "CtG_Name";
         args.Children.HasChildren = (x) => (contractorGroups.Where(x => x.CtG_ParentId == contractorGroup.CtG_Id).Any()) ? true : false;
     }
+    async Task CTRCreate()
+    {
+        var result = await dialogService.OpenAsync<HomeEnvironmentLifePlanner.Client.Pages.Contractor.CreateCTR>($"Nowy kontrahent", new Dictionary<string, object>() { { "contractorGroupId", ctgParentId } }, new DialogOptions() { Width = "1000px", Height = "530px" });
+        contractors = await client.GetFromJsonAsync<IEnumerable<Contractor>>($"api/contractor/group/getAssignedContractors/{ctgParentId}");
 
+    }
 }
