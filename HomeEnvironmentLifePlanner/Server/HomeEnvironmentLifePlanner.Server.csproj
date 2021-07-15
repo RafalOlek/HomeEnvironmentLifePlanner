@@ -5,11 +5,16 @@
     <UserSecretsId>HomeEnvironmentLifePlanner.Server-9186E0FF-78F9-4108-B414-96F09EB1EEB4</UserSecretsId>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Blazorise.TreeView" Version="0.9.2.4" />
     <PackageReference Include="ExcelDataReader" Version="3.6.0" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="5.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.JsonPatch" Version="5.0.1" />
+    <PackageReference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="6.11.1" />
     <PackageReference Include="Radzen.Blazor" Version="2.18.8" />
   </ItemGroup>
 

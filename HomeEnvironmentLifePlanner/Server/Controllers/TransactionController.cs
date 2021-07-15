@@ -34,7 +34,7 @@ namespace HomeEnvironmentLifePlanner.Server.Controllers
                 .ToListAsync();
                 return Ok(transactions);
             }
-            catch (Exception ex)
+            catch (Exception )
             {
                 return null;
             }
@@ -124,7 +124,7 @@ namespace HomeEnvironmentLifePlanner.Server.Controllers
                 _context.Entry(trh).State = EntityState.Modified;
                 await _context.SaveChangesAsync();
             }
-            catch (Exception ex)
+            catch (Exception )
             {
 
             }
@@ -147,7 +147,7 @@ namespace HomeEnvironmentLifePlanner.Server.Controllers
                       .Where(a => a.TrP_TRHID == trhId).ToListAsync();
                 return Ok(transactionPositions);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return NoContent();
             }

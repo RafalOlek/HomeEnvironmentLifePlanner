@@ -4,14 +4,16 @@ using HomeEnvironmentLifePlanner.Server.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace HomeEnvironmentLifePlanner.Server.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20210714142126_miggg")]
+    partial class miggg
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -223,9 +225,6 @@ namespace HomeEnvironmentLifePlanner.Server.Migrations
 
                     b.Property<int?>("BsS_CATID")
                         .HasColumnType("int");
-
-                    b.Property<string>("BsS_Description")
-                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("BsS_Id");
 

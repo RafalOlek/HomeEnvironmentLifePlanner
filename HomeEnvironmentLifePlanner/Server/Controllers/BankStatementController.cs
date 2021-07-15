@@ -34,7 +34,7 @@ namespace HomeEnvironmentLifePlanner.Server.Controllers
                                         .ToListAsync();
                 return Ok(currencies);
             }
-            catch (Exception ex)
+            catch (Exception )
             {
 
             }
@@ -60,7 +60,7 @@ namespace HomeEnvironmentLifePlanner.Server.Controllers
                       .Where(a => a.BsP_BSHID == bshId &&(a.BsP_RecommendedContractorId == null || a.RecommendedContractor.CtR_Id == a.BsP_RecommendedContractorId)).ToListAsync();
                 return Ok(bankStatmentPositions);
             }
-            catch (Exception ex)
+            catch (Exception )
             {
                 return NoContent();
             }
@@ -133,7 +133,7 @@ namespace HomeEnvironmentLifePlanner.Server.Controllers
                 }
                 return Ok(200);
             }
-            catch (Exception ex)
+            catch (Exception )
             {
                 return NoContent();
             }
@@ -200,7 +200,7 @@ namespace HomeEnvironmentLifePlanner.Server.Controllers
                 else
                     return null;
             }
-            catch (Exception ex)
+            catch (Exception )
             {
                 return null;
             }

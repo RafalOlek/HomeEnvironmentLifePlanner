@@ -1,5 +1,4 @@
 using HomeEnvironmentLifePlanner.Server.Data;
-using HomeEnvironmentLifePlanner.Server.Data;
 using HomeEnvironmentLifePlanner.Server.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
@@ -21,7 +20,7 @@ namespace HomeEnvironmentLifePlanner.Server
         {
             Configuration = configuration;
         }
-
+        
         public IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
@@ -41,7 +40,7 @@ namespace HomeEnvironmentLifePlanner.Server
 
             services.AddDatabaseDeveloperPageExceptionFilter();
 
-            services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
+            services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = false)
                 .AddEntityFrameworkStores<ApplicationDbContext>();
 
             services.AddIdentityServer()
@@ -79,9 +78,10 @@ namespace HomeEnvironmentLifePlanner.Server
             app.UseBlazorFrameworkFiles();
             app.UseStaticFiles();
 
+            app.UseIdentityServer();
             app.UseRouting();
 
-            app.UseIdentityServer();
+
             app.UseAuthentication();
             app.UseAuthorization();
            

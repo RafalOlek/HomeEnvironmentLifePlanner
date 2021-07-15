@@ -32,7 +32,7 @@ namespace HomeEnvironmentLifePlanner.Server.Controllers
                                         .ToListAsync();
                 return Ok(shoppingLists);
             }
-            catch (Exception ex)
+            catch (Exception )
             {
 
             }
@@ -55,7 +55,7 @@ namespace HomeEnvironmentLifePlanner.Server.Controllers
                       .Where(a => a.SlP_SLHID == slhId).ToListAsync();
                 return Ok(shoppingListPositions);
             }
-            catch (Exception ex)
+            catch (Exception )
             {
                 return NoContent();
             }

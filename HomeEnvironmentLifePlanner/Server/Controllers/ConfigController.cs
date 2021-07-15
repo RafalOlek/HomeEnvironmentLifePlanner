@@ -29,7 +29,7 @@ namespace HomeEnvironmentLifePlanner.Server.Controllers
                     .Include(y => y.CaT_Children).ToListAsync();
                 return Ok(categorys);
             }
-            catch (Exception ex)
+            catch (Exception )
             {
 
             }
@@ -60,7 +60,7 @@ namespace HomeEnvironmentLifePlanner.Server.Controllers
                 await _context.SaveChangesAsync();
                 return Ok(category.CaT_Id);
             }
-            catch(Exception ex)
+            catch(Exception )
             {
                 return NoContent();
             }
@@ -162,7 +162,7 @@ namespace HomeEnvironmentLifePlanner.Server.Controllers
                 var paymentTypes = await _context.PaymentTypes.Include(x => x.Account).Where(x => x.PyT_ACCID == x.Account.AcC_Id).ToListAsync();
                 return Ok(paymentTypes);
             }
-            catch (Exception ex)
+            catch (Exception )
             {
                 return null;
             }

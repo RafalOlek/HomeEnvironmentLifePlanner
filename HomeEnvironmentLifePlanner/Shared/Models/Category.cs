@@ -17,11 +17,14 @@ namespace HomeEnvironmentLifePlanner.Shared.Models
         public string CaT_ReferenceNumber { get; set; }
         public int? CaT_ParentId { get; set; }
         public int CaT_CTYID { get; set; }
+        public string CaT_Path { get; set; }
         [ForeignKey("CaT_CTYID")]
         public CategoryType CategoryType { get; set; }
         [JsonIgnore]
         public ICollection<Category> CaT_Children  { get; set; }
-        public Category Category1 { get; set; }
+        public Category Category1 { get; set ;    }
+
+
 
     }
     public class CategoryType

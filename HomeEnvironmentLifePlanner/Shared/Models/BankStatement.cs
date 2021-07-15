@@ -55,6 +55,7 @@ namespace HomeEnvironmentLifePlanner.Shared.Models
         public int? BsS_CATID { get; set; }
         public decimal BsS_Amount { get; set; }
 
+        public string BsS_Description { get; set; }
         [ForeignKey("BsS_CATID")]
         public Category Category { get; set; }
         [ForeignKey("BsS_BSPID")]
