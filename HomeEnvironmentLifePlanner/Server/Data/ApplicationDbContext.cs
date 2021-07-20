@@ -8,16 +8,24 @@ using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
+
+using System.Data;
+
+using System.Linq.Expressions;
+using System.ComponentModel;
 
 namespace HomeEnvironmentLifePlanner.Server.Data
 {
     public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
     {
+
+
         public DbSet<Account> Accounts { get; set; }
         public DbSet<BankStatementHeader> BankStatmentHeaders { get; set; }
         public DbSet<BankStatementPosition> BankStatementPositions { get; set; }
-        public DbSet<BankStatementSubPosition> BankStatementSubPositions{ get; set; }
+        public DbSet<BankStatementSubPosition> BankStatementSubPositions { get; set; }
         public DbSet<ShoppingListHeader> ShoppingListHeaders { get; set; }
         public DbSet<ShoppingListPosition> ShoppingListPositions { get; set; }
 
@@ -32,6 +40,7 @@ namespace HomeEnvironmentLifePlanner.Server.Data
         public DbSet<Product> Products { get; set; }
         public DbSet<ProductGroup> ProductGroups { get; set; }
         public DbSet<ProductPrice> ProductPrices { get; set; }
+
         public ApplicationDbContext(
             DbContextOptions options,
             IOptions<OperationalStoreOptions> operationalStoreOptions) : base(options, operationalStoreOptions)
@@ -40,7 +49,7 @@ namespace HomeEnvironmentLifePlanner.Server.Data
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
-
+            builder.Entity<GetAllExpenditureAndRevenueInMonth>().HasNoKey().ToView(null);
 
             builder.Entity<Account>().ToTable("Accounts");
             builder.Entity<BankStatementHeader>().ToTable("BankStatmentHeaders");
@@ -69,7 +78,7 @@ namespace HomeEnvironmentLifePlanner.Server.Data
 
 
             builder.Entity<ContractorGroup>().HasData(new ContractorGroup { CtG_Id = 1, CtG_Name = "Grupa Główna", CtG_ParentId = null });
-            builder.Entity<ProductGroup>().HasData(new ProductGroup { PrG_Id = 1, PrG_Name = "Grupa Główna", PrG_ParentId = null ,PrG_Code="GŁÓWNA"});
+            builder.Entity<ProductGroup>().HasData(new ProductGroup { PrG_Id = 1, PrG_Name = "Grupa Główna", PrG_ParentId = null, PrG_Code = "GŁÓWNA" });
 
             builder.Entity<Currency>().HasData(new Currency { CuR_Id = 1, CuR_Name = "PLN" }, new Currency { CuR_Id = 2, CuR_Name = "EUR" }, new Currency { CuR_Id = 3, CuR_Name = "GBP" });
             builder.Entity<Account>().HasData(
@@ -119,5 +128,8 @@ namespace HomeEnvironmentLifePlanner.Server.Data
 
 
         }
+        public IQueryable<GetAllExpenditureAndRevenueInMonth> GetAllExpenditureAndRevenueInMonth(int Year, int Month) =>
+    Set<GetAllExpenditureAndRevenueInMonth>().FromSqlInterpolated($"select * from dbo.GetAllExpenditureAndRevenueInMonth({Year}, {Month})");
     }
+
 }

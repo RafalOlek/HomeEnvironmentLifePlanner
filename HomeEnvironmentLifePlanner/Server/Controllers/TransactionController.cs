@@ -32,9 +32,11 @@ namespace HomeEnvironmentLifePlanner.Server.Controllers
                 .Include(cur => cur.Currency).Where(cur => cur.TrH_CURID == cur.Currency.CuR_Id)
                 .Include(bsp => bsp.BankStatmentPosition).Where(bsp => bsp.TrH_BSPID == bsp.BankStatmentPosition.BsP_Id)
                 .ToListAsync();
+                //var x = await _context.GetAllExpenditureAndRevenueInMonth(2021, 7).ToListAsync();
                 return Ok(transactions);
+
             }
-            catch (Exception )
+            catch (Exception ex )
             {
                 return null;
             }
