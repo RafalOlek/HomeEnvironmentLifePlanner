@@ -12,6 +12,7 @@ namespace HomeEnvironmentLifePlanner.Server.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    
     public class DashboardController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
@@ -19,11 +20,11 @@ namespace HomeEnvironmentLifePlanner.Server.Controllers
         {
             this._context = context;
         }
-        [HttpGet("groupList")]
-        public async Task<IActionResult> GetList()
+        [HttpGet("raport1/{year}/{month}")]
+        public async Task<IActionResult> GetRaport1( int year, int month)
         {
-            var productGroups = await _context.ProductGroups.ToListAsync();
-            return Ok(productGroups);
+            var raport1 = await _context.GetAllExpenditureAndRevenueInMonth(year, month).ToListAsync();
+            return Ok(raport1);
         }
     }
 }

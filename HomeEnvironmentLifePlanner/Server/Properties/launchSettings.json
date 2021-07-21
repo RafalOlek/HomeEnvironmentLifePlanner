@@ -1,6 +1,6 @@
 {
   "iisSettings": {
-    "windowsAuthentication": false,
+    "windowsAuthentication": true,
     "anonymousAuthentication": true,
     "iis": {
       "applicationUrl": "https://homeenvironmentlifeplanner.local:443",
@@ -33,6 +33,7 @@
     },
     "ROIIS": {
       "commandName": "IIS",
+      "workingDirectory": "C:\\ISS\\HELP",
       "launchBrowser": true,
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT ": "Development"

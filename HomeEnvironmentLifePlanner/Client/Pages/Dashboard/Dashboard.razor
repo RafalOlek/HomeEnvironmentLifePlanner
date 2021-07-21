@@ -1,0 +1,91 @@
+﻿@page "/dashboard"
+@inject HttpClient client
+@inject IJSRuntime js
+@using HomeEnvironmentLifePlanner.Shared.Models
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using System.Globalization;
+
+@inject NavigationManager navigatorManager
+
+
+<h2><RadzenIcon Icon="receipt_long" /> DashBoard</h2>
+@if (income1 == null)
+{
+    <text>@HomeEnvironmentLifePlanner.Client.Properties.Dictionary.sharedLoading</text>
+}
+
+else
+{
+<h3 style="margin-top: 2rem">Rok sdsdsadsdsd</h3>
+    <RadzenNumeric TValue="int" Min="1990" Max="2100" Change=@(args => ChangeDatesRaport1()) @bind-Value="@pYear" />
+    <h3 style="margin-top: 2rem">Miesiąc</h3>
+    <RadzenNumeric TValue="int" Min="1" Max="12" Change=@(args => ChangeDatesRaport1()) @bind-Value="@pMonth" />
+    <h2 style="margin-top: 2rem">Przychody</h2>
+    <RadzenChart   ColorScheme="ColorScheme.Pastel">
+        <RadzenColumnSeries  Data="@income3.Where(x=> x.V1_Income>0 && x.V1_Path.Length>4 )" Title=@(tmp.AddMonths(-2).ToString("Y")) CategoryProperty="V1_Name" ValueProperty="V1_Income"  LineType="LineType.Dotted"  />
+        <RadzenColumnSeries  Data="@income2.Where(x=> x.V1_Income>0 && x.V1_Path.Length>4)" Title=@(tmp.AddMonths(-1).ToString("Y")) CategoryProperty="V1_Name" ValueProperty="V1_Income" LineType="LineType.Dotted"     />
+        <RadzenColumnSeries Data="@income1.Where(x=> x.V1_Income>0 && x.V1_Path.Length>4)" Title=@(tmp.AddMonths(0).ToString("Y")) CategoryProperty="V1_Name" ValueProperty="V1_Income" LineType="LineType.Dotted" />
+        <RadzenCategoryAxis Padding="2"  Step="3" />
+        <RadzenColumnOptions Radius="20" Margin="3" />
+</RadzenChart>
+
+    @*<RadzenGrid Data="@allExpenditureAndRevenueInMonths" TItem="GetAllExpenditureAndRevenueInMonth">
+            <Columns>
+                <RadzenGridColumn TItem="GetAllExpenditureAndRevenueInMonth" Property="V1_Name" Title="Nazwa" />
+                <RadzenGridColumn TItem="GetAllExpenditureAndRevenueInMonth" Property="V1_Path" Title="Scieżka" />
+                <RadzenGridColumn TItem="GetAllExpenditureAndRevenueInMonth" Property="V1_Income" Title="Przychody" />
+                <RadzenGridColumn TItem="GetAllExpenditureAndRevenueInMonth" Property="V1_Outcome" Title="Rozchody" />
+                <RadzenGridColumn TItem="GetAllExpenditureAndRevenueInMonth" Property="V1_Balance" Title="Saldo" />
+            </Columns>
+        </RadzenGrid>*@
+}
+@code {
+
+    int pYear, pMonth, pYear2, pMonth2, pYear3, pMonth3;
+    IEnumerable<GetAllExpenditureAndRevenueInMonth> income1 { get; set; }
+    IEnumerable<GetAllExpenditureAndRevenueInMonth> income2 { get; set; }
+    IEnumerable<GetAllExpenditureAndRevenueInMonth> income3 { get; set; }
+    DateTime tmp;
+    //CultureInfo[] cultures = {CultureInfo.CreateSpecificCulture("de-DE"),
+    //                            CultureInfo.CreateSpecificCulture("en-US"),
+    //                            CultureInfo.CreateSpecificCulture("es-ES"),
+    //                            CultureInfo.CreateSpecificCulture("pl-PL")};
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            pYear = DateTime.Now.Year;
+            pMonth = DateTime.Now.Month;
+            tmp = new DateTime(pYear, pMonth, 1);
+            pYear2 = tmp.AddMonths(-1).Year;
+            pMonth2 = tmp.AddMonths(-1).Month;
+            pYear3 = tmp.AddMonths(-2).Year;
+            pMonth3 = tmp.AddMonths(-2).Month;
+
+            income1 = await client.GetFromJsonAsync<IEnumerable<GetAllExpenditureAndRevenueInMonth>>($"api/dashboard/raport1/{pYear}/{pMonth}");
+            income2 = await client.GetFromJsonAsync<IEnumerable<GetAllExpenditureAndRevenueInMonth>>($"api/dashboard/raport1/{pYear2}/{pMonth2}");
+            income3 = await client.GetFromJsonAsync<IEnumerable<GetAllExpenditureAndRevenueInMonth>>($"api/dashboard/raport1/{pYear3}/{pMonth3}");
+
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+        }
+    }
+    async Task ChangeDatesRaport1()
+    {
+        tmp = new DateTime(pYear, pMonth, 1);
+        pYear2 = tmp.AddMonths(-1).Year;
+        pMonth2 = tmp.AddMonths(-1).Month;
+        pYear3 = tmp.AddMonths(-2).Year;
+        pMonth3 = tmp.AddMonths(-2).Month;
+        income1 = null;
+        income2 = null;
+        income3 = null;
+
+        income1 = await client.GetFromJsonAsync<IEnumerable<GetAllExpenditureAndRevenueInMonth>>($"api/dashboard/raport1/{pYear}/{pMonth}");
+        income2 = await client.GetFromJsonAsync<IEnumerable<GetAllExpenditureAndRevenueInMonth>>($"api/dashboard/raport1/{pYear2}/{pMonth2}");
+        income3 = await client.GetFromJsonAsync<IEnumerable<GetAllExpenditureAndRevenueInMonth>>($"api/dashboard/raport1/{pYear3}/{pMonth3}");
+        this.StateHasChanged();
+    }
+}
